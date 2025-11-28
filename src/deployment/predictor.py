@@ -1,0 +1,1 @@
+class Predictor: pass

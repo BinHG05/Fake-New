@@ -1,0 +1,19 @@
+# Data Processing & Analysis (Dùng cho A, B, D)
+pandas
+numpy
+scikit-learn
+matplotlib
+
+# Computer Vision & Media (Dùng cho C)
+opencv-python
+pillow
+
+# Utilities & MLOps (Đã cố định phiên bản Label Studio)
+transformers
+open-clip-torch 
+regex 
+tqdm
+pyyaml
+pytest
+# SỬA LỖI: Cố định phiên bản để tránh lỗi phức tạp
+label-studio==1.9.0

@@ -1,0 +1,1 @@
+class CLIPModel: pass

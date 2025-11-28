@@ -1,0 +1,1 @@
+def process_image(p): pass

@@ -1,0 +1,38 @@
+name: multimodal_gnn
+channels:
+  - defaults
+  - pytorch
+  - pyg
+dependencies:
+  # Python Core
+  - python=3.10
+  
+  # Deep Learning Framework (Phần lõi)
+  - pytorch
+  - torchvision
+  - torchaudio
+  - cpuonly # Hoặc dùng cudatoolkit nếu có GPU
+
+  # Graph Neural Network (Cực kỳ quan trọng)
+  - pytorch-geometric # Cần channel 'pyg'
+
+  # Data Processing & Analysis
+  - pandas
+  - numpy
+  - scikit-learn
+  - matplotlib
+
+  # Computer Vision & Media
+  - opencv
+  - pillow
+
+  # Utilities & MLOps (Cài đặt qua pip)
+  - pip
+  - pip:
+    - transformers # Hugging Face cho BERT
+    - openclip-torch # Hoặc salesforce-blip cho Multimodal
+    - regex # Xử lý text
+    - tqdm # Thanh tiến trình
+    - pyyaml # Đọc config.yaml
+    - label-studio # Công cụ gán nhãn cho E
+    - pytest # Unit Testing
