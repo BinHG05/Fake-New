@@ -31,7 +31,6 @@ env/
 data/**
 !data/**/*.dvc
 !data/*.dvc
-
 # Tránh xung đột: chỉ lưu metadata .dvc
 *.cache
 # Lock file của DVC cần giữ lại
