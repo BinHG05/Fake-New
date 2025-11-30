@@ -34,7 +34,8 @@ data/**
 
 # Tránh xung đột: chỉ lưu metadata .dvc
 *.cache
-*.lock
+# Lock file của DVC cần giữ lại
+!dvc.lock
 *.dir
 
 # =========================================
