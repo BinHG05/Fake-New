@@ -8,12 +8,13 @@ matplotlib
 opencv-python
 pillow
 
-# Utilities & MLOps (Đã cố định phiên bản Label Studio)
+# Utilities & MLOps 
 transformers
 open-clip-torch 
 regex 
 tqdm
 pyyaml
 pytest
-# SỬA LỖI: Cố định phiên bản để tránh lỗi phức tạp
-label-studio==1.9.0
+pyarrow
+kaggle
+notebook
