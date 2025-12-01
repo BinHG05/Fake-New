@@ -78,6 +78,8 @@ kaggle.json
 *.pem
 config.yaml
 secrets.yaml
+service-account-key.json
+*service-account*.json
 
 # =========================================
 # NOTEBOOKS AUTO GENERATED
@@ -105,3 +107,4 @@ secrets.yaml
 .DS_Store
 Thumbs.db
 /test_file.txt
+".dvc/config.local" 
