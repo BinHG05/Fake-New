@@ -1,3 +1,8 @@
+
+# conda activate multimodal_gnn
+# Lệnh này sẽ cài đặt thêm dvc-gdrive vào môi trường của họ
+# pip install -r requirements_rest.txt --upgrade
+
 # Data Processing & Analysis (Dùng cho A, B, D)
 pandas
 numpy
@@ -18,3 +23,5 @@ pytest
 pyarrow
 kaggle
 notebook
+# THÊM DVC GOOGLE DRIVE CHO REMOTE STORAGE
+dvc-gdrive
