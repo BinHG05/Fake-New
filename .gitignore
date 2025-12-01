@@ -104,3 +104,4 @@ secrets.yaml
 # =========================================
 .DS_Store
 Thumbs.db
+/test_file.txt
