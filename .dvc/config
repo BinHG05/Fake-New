@@ -1,5 +1,8 @@
 [core]
-    remote = gdrive_storage
+    remote = dagshub
 ['remote "gdrive_storage"']
     url = gdrive://1KrKTPSVPmPBO2XJ13r21QYxs4Uc7Mbzf
     gdrive_use_service_account = true
+['remote "dagshub"']
+    url = https://dagshub.com/BinHG05/DVC-Store.git
+
