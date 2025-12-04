@@ -5,7 +5,3 @@
     gdrive_use_service_account = true
 ['remote "dagshub"']
     url = https://dagshub.com/BinHG05/Fake-New.dvc
-['remote "storage_moi"']
-    url = https://dagshub.com/BinHG05/Fake-New.dvc
-['remote "storage_vip"']
-    url = https://BinHG05:16963aa09968aed3828528d19adc77239f117d28@dagshub.com/BinHG05/Fake-New.dvc
