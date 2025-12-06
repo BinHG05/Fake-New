@@ -26,3 +26,4 @@ notebook
 # THÊM DVC GOOGLE DRIVE CHO REMOTE STORAGE
 dvc
 dagshub
+imagehash
