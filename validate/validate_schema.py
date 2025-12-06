@@ -3,6 +3,7 @@ import json
 import os
 import time
 import logging
+import sys # <-- THÊM MỚI ĐỂ SỬA LỖI WINDOWS
 from collections import Counter
 from datetime import datetime
 
@@ -10,13 +11,15 @@ from jsonschema import validate, ValidationError
 # Giả định schema_definitions.py đã được tạo ở bước 1
 from schema_definitions import CORE_SCHEMA, EXTENDED_SCHEMA 
 
-# Cấu hình Logging (Điểm 3)
+# Cấu hình Logging
 LOG_FILE = 'validation_report.log'
 logging.basicConfig(level=logging.INFO, 
                     format='%(levelname)s: %(message)s',
                     handlers=[
-                        logging.FileHandler(LOG_FILE, mode='w'),
-                        logging.StreamHandler()
+                        # Thêm encoding='utf-8' cho FileHandler
+                        logging.FileHandler(LOG_FILE, mode='w', encoding='utf-8'), 
+                        # Dùng sys.stdout để ép UTF-8 trên console Windows
+                        logging.StreamHandler(sys.stdout) 
                     ])
 logger = logging.getLogger(__name__)
 
@@ -25,7 +28,6 @@ logger = logging.getLogger(__name__)
 def validate_jsonl_file(file_path, schema, schema_name):
     """
     Thực hiện kiểm tra cấu trúc (jsonschema) và logic nghiệp vụ trong một lần quét (One-Pass).
-    (Giải quyết Lỗi 7, Điểm 4)
     """
     logger.info(f"\n--- Bắt đầu kiểm tra {schema_name} ({file_path}) ---")
     
@@ -44,7 +46,6 @@ def validate_jsonl_file(file_path, schema, schema_name):
 
     total_records = 0
     with open(file_path, 'r', encoding='utf-8') as f:
-        # Tùy chọn: Dùng tqdm để hiển thị thanh tiến trình
         for line_number, line in enumerate(f): 
             if not line.strip(): continue
             total_records += 1
@@ -59,7 +60,7 @@ def validate_jsonl_file(file_path, schema, schema_name):
                 if 'id' in data: validation_summary['post_ids'].append(data['id'])
                 if 'user_id' in data: validation_summary['user_ids'].add(data['user_id'])
                 
-                # 2. Kiểm tra Logic Nghiệp vụ (Phần này fix Lỗi 5, 6, 11, Điểm 5, 6, 7)
+                # 2. Kiểm tra Logic Nghiệp vụ
                 if schema_name == "EXTENDED_SCHEMA":
                     img_info = data.get('image_info', {})
                     text_content = data.get('clean_text', '')
@@ -69,7 +70,7 @@ def validate_jsonl_file(file_path, schema, schema_name):
                         logger.error(f"LỖI LOGIC Dòng {line_number + 1}: image_size không phải [224, 224].")
                         validation_summary['logic_errors'] += 1
                         
-                    # 2.2. Kiểm tra consistency của video/keyframe (Điểm 5)
+                    # 2.2. Kiểm tra consistency của video/keyframe
                     is_video = img_info.get('is_video', False)
                     keyframe_paths = img_info.get('keyframe_paths', [])
                     if is_video and not keyframe_paths:
@@ -79,21 +80,28 @@ def validate_jsonl_file(file_path, schema, schema_name):
                         logger.error(f"LỖI LOGIC Dòng {line_number + 1}: is_video=False nhưng keyframe_paths có dữ liệu.")
                         validation_summary['logic_errors'] += 1
 
-                    # 2.3. Kiểm tra clean_text consistency (Lỗi 5, Điểm 6)
-                    # Kiểm tra độ dài (giả định minimum 5 ký tự)
-                    if len(text_content) < 5 or text_content.isupper() or len(text_content) > 5000:
-                        logger.error(f"LỖI LOGIC Dòng {line_number + 1}: clean_text không nhất quán (quá ngắn/quá dài/chưa lowercase).")
+                    # 2.3. Kiểm tra clean_text consistency (ĐÃ SỬA LỖI LOGIC isupper - Lỗi 1)
+                    
+                    # Logic 1: Kiểm tra độ dài
+                    is_length_valid = len(text_content) >= 5 and len(text_content) <= 5000
+                    
+                    # Logic 2: Kiểm tra chữ hoa (any upper case char)
+                    has_uppercase = any(c.isupper() for c in text_content if c.isalpha())
+                    
+                    if not is_length_valid:
+                        logger.error(f"LỖI LOGIC Dòng {line_number + 1}: clean_text không nhất quán (quá ngắn/quá dài).")
                         validation_summary['logic_errors'] += 1
-
-                    # 2.4. Kiểm tra timestamp logic (Điểm 7)
+                    elif has_uppercase:
+                        logger.error(f"LỖI LOGIC Dòng {line_number + 1}: clean_text chứa ký tự chữ hoa (chưa lowercase).")
+                        validation_summary['logic_errors'] += 1
+                        
+                    # 2.4. Kiểm tra timestamp logic
                     current_epoch = int(time.time())
-                    if data.get('timestamp') > current_epoch:
+                    if data.get('timestamp') and data.get('timestamp') > current_epoch:
                         logger.error(f"LỖI LOGIC Dòng {line_number + 1}: timestamp tương lai.")
                         validation_summary['logic_errors'] += 1
 
-                    # 2.5. Kiểm tra media_url <-> is_video (Lỗi 6 - giả định)
-                    # Giả định: Nếu raw_text có url ảnh/video, is_video phải là True hoặc False tùy loại
-                    # Đây là kiểm tra phức tạp, tạm thời chỉ kiểm tra liên kết ngược cơ bản
+                    # 2.5. Kiểm tra media_url <-> is_video 
                     if data.get('media_url') and not img_info.get('processed_path'):
                         logger.warning(f"CẢNH BÁO Dòng {line_number + 1}: Có media_url thô nhưng thiếu processed_path.")
 
@@ -129,7 +137,7 @@ def run_validation():
     # 2. KIỂM TRA ĐẦU RA (EXTENDED SCHEMA)
     extended_results = validate_jsonl_file(PROCESSED_DATA_PATH, EXTENDED_SCHEMA, "EXTENDED_SCHEMA")
 
-    # 3. TỔNG KẾT LỖI (Lỗi 8, Điểm 1)
+    # 3. TỔNG KẾT LỖI
     total_errors = core_results['struct_errors'] + core_results['logic_errors'] + \
                    extended_results['struct_errors'] + extended_results['logic_errors']
     
