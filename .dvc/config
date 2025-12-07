@@ -1,7 +1,4 @@
 [core]
-    remote = origin
-['remote "origin"']
+    remote = storage
+['remote "storage"']
     url = https://dagshub.com/BinHG05/Fake-New.dvc
-    auth = basic
-    user = TuanDat-meo
-    password = e02330fe1edbece1310a795e9a9cfb032b17c985

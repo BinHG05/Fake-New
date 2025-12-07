@@ -550,7 +550,7 @@ def main():
     )
     OUTPUT_DIR = os.path.join(
         project_root, 
-        "data", "03_clean"  # Thư mục clean data
+        "data", "02_processed","clean_processed"  # Thư mục clean data
     )
     
     # Check if input file exists
