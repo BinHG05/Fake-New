@@ -1,6 +1,6 @@
 """
 Data Cleaning Pipeline for Fake News Detection
-Transforms processed_data → clean_data
+Transforms dataset_output.jsonl → clean_data (train/val/test splits)
 Author: Member C
 File: src/data/data_cleaner.py
 """
@@ -13,7 +13,7 @@ project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(_
 sys.path.insert(0, project_root)
 
 print("=" * 60)
-print("DATA CLEANER - QUALITY ASSURANCE VERSION")
+print("DATA CLEANER - SHARED DATASET PROCESSOR")
 print("=" * 60)
 print(f"Python: {sys.version}")
 print(f"Project root: {project_root}")
@@ -32,6 +32,7 @@ from pathlib import Path
 from typing import Dict, List, Tuple
 import re
 from collections import Counter
+from datetime import datetime
 
 print("  ✓ Basic imports")
 
@@ -61,7 +62,7 @@ logger = logging.getLogger(__name__)
 
 
 class DataCleaner:
-    """Clean and prepare data for training"""
+    """Clean and prepare data for training from shared dataset_output.jsonl"""
     
     def __init__(
         self,
@@ -81,12 +82,16 @@ class DataCleaner:
         self.val_ratio = val_ratio
         self.test_ratio = 1 - train_ratio - val_ratio
         
+        # Create timestamp for this cleaning run
+        self.run_timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        
         self.output_dir.mkdir(parents=True, exist_ok=True)
         
         self.CLIP_MEAN = [0.48145466, 0.4578275, 0.40821073]
         self.CLIP_STD = [0.26862954, 0.26130258, 0.27577711]
         
         self.stats = {
+            "run_timestamp": self.run_timestamp,
             "total_input_records": 0,
             "corrupted_images": 0,
             "missing_images": 0,
@@ -270,6 +275,7 @@ class DataCleaner:
         stats = {
             'total_samples': len(records),
             'label_distribution': Counter(r.get('label', 'Unknown') for r in records),
+            'batch_distribution': Counter(r.get('image_info', {}).get('batch_id', 'Unknown') for r in records),
             'text_stats': {
                 'avg_length': 0,
                 'min_length': 0,
@@ -328,11 +334,13 @@ class DataCleaner:
         """Main processing pipeline"""
         
         print("=" * 60)
-        print("STEP 1/7: LOADING DATA")
+        print("STEP 1/7: LOADING DATA FROM SHARED DATASET")
         print("=" * 60)
         
         if not self.input_jsonl.exists():
             raise FileNotFoundError(f"Input file not found: {self.input_jsonl}")
+        
+        print(f"Reading: {self.input_jsonl}")
         
         records = []
         with open(self.input_jsonl, 'r', encoding='utf-8') as f:
@@ -347,7 +355,13 @@ class DataCleaner:
                     continue
         
         self.stats['total_input_records'] = len(records)
-        print(f"✓ Loaded {len(records)} records")
+        print(f"✓ Loaded {len(records)} records from shared dataset")
+        
+        # Show batch information
+        batch_ids = Counter(r.get('image_info', {}).get('batch_id', 'Unknown') for r in records)
+        print(f"\nBatch distribution:")
+        for batch_id, count in batch_ids.items():
+            print(f"  - {batch_id}: {count} records")
         print()
         
         if len(records) == 0:
@@ -477,13 +491,14 @@ class DataCleaner:
         print(f"✓ Saved statistics.json")
         
         # Save quality report
-        quality_file = self.output_dir / "quality_report.json"
+        quality_file = self.output_dir / f"quality_report_{self.run_timestamp}.json"
         with open(quality_file, 'w', encoding='utf-8') as f:
             json.dump({
+                'run_timestamp': self.run_timestamp,
                 'processing_stats': self.stats,
                 'issues': self.issues
             }, f, indent=2, ensure_ascii=False)
-        print(f"✓ Saved quality_report.json")
+        print(f"✓ Saved quality_report_{self.run_timestamp}.json")
         
         print()
         print("=" * 60)
@@ -498,6 +513,7 @@ class DataCleaner:
         """Print final summary"""
         print("SUMMARY:")
         print("-" * 60)
+        print(f"Run timestamp:          {self.run_timestamp}")
         print(f"Input records:          {self.stats['total_input_records']}")
         print(f"Final valid records:    {self.stats['final_valid_records']}")
         print(f"Success rate:           {self.stats['final_valid_records']/self.stats['total_input_records']*100:.1f}%")
@@ -509,6 +525,10 @@ class DataCleaner:
         print("Label distribution:")
         for label, count in statistics['label_distribution'].items():
             print(f"  - {label}: {count}")
+        print()
+        print("Batch sources:")
+        for batch_id, count in statistics['batch_distribution'].items():
+            print(f"  - {batch_id}: {count}")
         print("-" * 60)
 
 
@@ -518,28 +538,43 @@ def main():
     print()
     print("=" * 60)
     print("DATA CLEANER FOR FAKE NEWS DETECTION")
+    print("Processes SHARED dataset_output.jsonl → train/val/test splits")
     print("=" * 60)
     print()
     
-    # Define paths
+    # Define paths - ONLY use shared dataset_output.jsonl
     INPUT_FILE = os.path.join(
         project_root, 
-        "data", "02_processed", "Fakeddit", 
-        "dataset_Fakeddit_Processed_200samples.jsonl"
+        "data", "02_processed", 
+        "dataset_output.jsonl"  # File chung từ preprocessor_image.py
     )
-    OUTPUT_DIR = os.path.join(project_root, "data","02_processed", "clean", "Fakeddit")
+    OUTPUT_DIR = os.path.join(
+        project_root, 
+        "data", "02_processed","clean_processed"  # Thư mục clean data
+    )
     
     # Check if input file exists
     if not os.path.exists(INPUT_FILE):
-        print(f"✗ ERROR: Input file not found: {INPUT_FILE}")
+        print(f"✗ ERROR: Shared dataset not found: {INPUT_FILE}")
         print()
-        print("Please run preprocessor_image.py first!")
+        print("Please run preprocessor_image.py first to create the shared dataset!")
         print()
-        print("Expected file structure:")
-        print("  data/02_processed/Fakeddit/dataset_Fakeddit_Processed_200samples.jsonl")
+        print("Expected workflow:")
+        print("  1. Run preprocessor_image.py → creates dataset_output.jsonl")
+        print("  2. Run this cleaner → creates train/val/test splits")
+        print()
         return
     
+    # Get file info
+    file_size = os.path.getsize(INPUT_FILE)
+    record_count = 0
+    with open(INPUT_FILE, 'r', encoding='utf-8') as f:
+        for _ in f:
+            record_count += 1
+    
     print(f"✓ Input file: {INPUT_FILE}")
+    print(f"  File size: {file_size:,} bytes")
+    print(f"  Total records: {record_count}")
     print(f"✓ Output dir: {OUTPUT_DIR}")
     print()
     
@@ -556,6 +591,28 @@ def main():
     # Run processing
     try:
         cleaner.process()
+        
+        print()
+        print("=" * 60)
+        print("NEXT STEPS:")
+        print("=" * 60)
+        print()
+        print("1. Review the clean data:")
+        print(f"   - {OUTPUT_DIR}/train.jsonl")
+        print(f"   - {OUTPUT_DIR}/val.jsonl")
+        print(f"   - {OUTPUT_DIR}/test.jsonl")
+        print()
+        print("2. Track with DVC:")
+        print(f"   dvc add {OUTPUT_DIR}/train.jsonl")
+        print(f"   dvc add {OUTPUT_DIR}/val.jsonl")
+        print(f"   dvc add {OUTPUT_DIR}/test.jsonl")
+        print()
+        print("3. Commit changes:")
+        print("   git add *.dvc .gitignore")
+        print("   git commit -m 'Add clean data splits'")
+        print("   dvc push")
+        print()
+        
     except KeyboardInterrupt:
         print()
         print("=" * 60)
