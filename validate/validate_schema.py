@@ -128,8 +128,8 @@ def validate_jsonl_file(file_path, schema, schema_name):
 
 def run_validation():
     # Giả định đường dẫn file của nhóm
-    RAW_DATA_PATH = 'data/01_raw/Fakeddit/liar_pilot_processed_200.jsonl'
-    PROCESSED_DATA_PATH = 'data/02_processed/Fakeddit/dataset_Fakeddit_200samples.jsonl'
+    RAW_DATA_PATH = 'data/01_raw/Fakeddit/Fakeddit_pilot_processed_200.jsonl'
+    PROCESSED_DATA_PATH = 'data/03_clean/Fakeddit/train.jsonl'  # Output từ fakeddit_process_text.py
     
     # 1. KIỂM TRA ĐẦU VÀO (CORE SCHEMA)
     core_results = validate_jsonl_file(RAW_DATA_PATH, CORE_SCHEMA, "CORE_SCHEMA")
