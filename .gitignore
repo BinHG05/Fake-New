@@ -109,4 +109,3 @@ Thumbs.db
 /test_file.txt
 ".dvc/config.local" 
 .dvc/md5/ 
-/data

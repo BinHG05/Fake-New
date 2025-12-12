@@ -10,7 +10,7 @@ CORE_SCHEMA = {
         "label": {"type": "string"},
         "raw_text": {"type": "string"},
         "media_url": {"type": "string"},
-        "user_id": {"type": "string", "pattern": "^[A-Za-z0-9_]{1,15}$"}, # Bổ sung: Kiểm tra format/độ dài user_id (Lỗi 11)
+        "user_id": {"type": ["string", "null"], "pattern": "^[A-Za-z0-9_-]{1,20}$"}, # Reddit: cho phép null, dấu -, tối đa 20 ký tự
         "retweet_count": {"type": "integer", "minimum": 0}
     },
     "additionalProperties": False

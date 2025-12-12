@@ -1,0 +1,6 @@
+outs:
+- md5: 48b53b86330593e06b9db473ab65175f.dir
+  size: 99081
+  nfiles: 5
+  hash: md5
+  path: Fakeddit
