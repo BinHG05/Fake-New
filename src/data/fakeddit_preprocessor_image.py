@@ -456,7 +456,7 @@ def main():
     print()
     
     # Configuration
-    INPUT_FILE = "data/01_raw/Fakeddit/dataset_Fakeddit_Processed.jsonl"
+    INPUT_FILE = "data/01_raw/Fakeddit/Fakeddit_pilot_processed_200.jsonl"
     
     # File chung (APPEND mode - không ghi đè)
     SHARED_OUTPUT = "data/02_processed/dataset_output.jsonl"
@@ -527,7 +527,7 @@ def main():
         print()
         print("Next steps:")
         print("1. Review the output files and images")
-        print("2. Run data_cleaner.py on the SHARED file to clean the data")
+        print("2. Run fakeddit_process_text.py to clean the data and split")
         print("3. Use DVC to track the processed data")
         print()
         print("DVC commands:")
