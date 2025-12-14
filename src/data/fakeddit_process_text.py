@@ -337,8 +337,11 @@ class FakedditDataProcessor:
                 'sentiment_score': round(sentiment_score, 4)
             },
             
-            # Image info (placeholder - có thể được cập nhật từ image processor)
-            'image_info': {
+            # Image info - BẢO TỒN từ image processor nếu đã có, nếu không thì dùng placeholder
+            'image_info': record.get('image_info') if (
+                record.get('image_info') and 
+                record.get('image_info', {}).get('processed_path')
+            ) else {
                 'processed_path': '',  # Cần chạy fakeddit_preprocessor_image.py để có ảnh
                 'image_size': [224, 224],  # Default standard size
                 'is_video': False,
@@ -668,10 +671,11 @@ def main():
     print()
     
     # Define paths following the 01/02/03 structure
+    # INPUT: Đọc từ output của image processor (đã có image_info với processed_path)
     INPUT_FILE = os.path.join(
         project_root,
-        "data", "01_raw", "Fakeddit",
-        "Fakeddit_pilot_processed_200.jsonl"
+        "data", "02_processed",
+        "dataset_output.jsonl"  # Output từ fakeddit_preprocessor_image.py
     )
     
     OUTPUT_02_DIR = os.path.join(
@@ -688,7 +692,12 @@ def main():
     if not os.path.exists(INPUT_FILE):
         print(f"✗ ERROR: Input file not found: {INPUT_FILE}")
         print()
-        print("Expected location: data/01_raw/Fakeddit/Fakeddit_pilot_processed_200.jsonl")
+        print("→ Bạn cần chạy fakeddit_preprocessor_image.py TRƯỚC để tạo file này!")
+        print("  Command: python src/data/fakeddit_preprocessor_image.py")
+        print()
+        print("Pipeline đúng:")
+        print("  1. fakeddit_preprocessor_image.py → tạo data/02_processed/dataset_output.jsonl")
+        print("  2. fakeddit_process_text.py       → đọc từ dataset_output.jsonl, tạo 03_clean/")
         print()
         return
     
