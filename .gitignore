@@ -109,3 +109,9 @@ Thumbs.db
 /test_file.txt
 ".dvc/config.local" 
 .dvc/md5/ 
+
+# =========================================
+# LABEL STUDIO
+# =========================================
+labels_storage/
+*.sqlite3
