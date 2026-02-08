@@ -446,6 +446,27 @@ class ImageProcessor:
 
 def main():
     """Main function to run the processor"""
+    import argparse
+    
+    parser = argparse.ArgumentParser(description='Process images for Fakeddit dataset')
+    parser.add_argument(
+        '--input',
+        default='data/01_raw/Fakeddit/Fakeddit_pilot_processed_200.jsonl',
+        help='Path to input JSONL file'
+    )
+    parser.add_argument(
+        '--batch-name',
+        default=None,
+        help='Batch name for output files (e.g., "200_400"). If not provided, derived from input filename.'
+    )
+    parser.add_argument(
+        '--max-samples',
+        type=int,
+        default=None,
+        help='Maximum number of samples to process (default: all)'
+    )
+    
+    args = parser.parse_args()
     
     print()
     print("=" * 60)
@@ -456,24 +477,37 @@ def main():
     print()
     
     # Configuration
-    INPUT_FILE = "data/01_raw/Fakeddit/Fakeddit_pilot_processed_200.jsonl"
+    INPUT_FILE = args.input
+    
+    # Derive batch name from input file if not provided
+    if args.batch_name:
+        batch_name = args.batch_name
+    else:
+        # Extract from filename like "Fakeddit_200_400.jsonl" -> "200_400"
+        import re
+        match = re.search(r'Fakeddit_(\d+_\d+)', os.path.basename(INPUT_FILE))
+        if match:
+            batch_name = match.group(1)
+        else:
+            batch_name = "batch"
     
     # File chung (APPEND mode - không ghi đè)
     SHARED_OUTPUT = "data/02_processed/dataset_output.jsonl"
     
     # File riêng cho batch này (AUTO-INCREMENT - không ghi đè)
-    INDIVIDUAL_OUTPUT_BASE = "data/02_processed/Fakeddit/dataset_Fakeddit_200samples"
+    INDIVIDUAL_OUTPUT_BASE = f"data/02_processed/Fakeddit/dataset_Fakeddit_{batch_name}"
     
     DATASET_NAME = "Fakeddit"
     
     USE_PADDING = True
-    MAX_SAMPLES = 200
+    MAX_SAMPLES = args.max_samples
     
     # Check if input file exists
     if not os.path.exists(INPUT_FILE):
         print(f"✗ ERROR: Input file not found: {INPUT_FILE}")
         print()
         return
+
     
     file_size = os.path.getsize(INPUT_FILE)
     print(f"✓ Input file found: {INPUT_FILE}")

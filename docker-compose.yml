@@ -1,0 +1,16 @@
+version: '3'
+services:
+  label-studio:
+    image: heartexlabs/label-studio:latest
+    container_name: label-studio
+    ports:
+      - "8080:8080"
+    volumes:
+      # Mount entire project directory
+      - .:/label-studio/project
+      # Mount Label Studio data (database & persistence)
+      - ./labels_storage:/label-studio/data
+    environment:
+      - LABEL_STUDIO_LOCAL_FILES_SERVING_ENABLED=true
+      - LABEL_STUDIO_LOCAL_FILES_DOCUMENT_ROOT=/label-studio/project
+    restart: unless-stopped

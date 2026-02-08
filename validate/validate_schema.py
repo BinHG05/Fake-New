@@ -126,16 +126,19 @@ def validate_jsonl_file(file_path, schema, schema_name):
 
 # --- HÀM CHẠY CHÍNH VÀ TỔNG HỢP ---
 
-def run_validation():
-    # Giả định đường dẫn file của nhóm
-    RAW_DATA_PATH = 'data/01_raw/Fakeddit/Fakeddit_pilot_processed_200.jsonl'
-    PROCESSED_DATA_PATH = 'data/03_clean/Fakeddit/train.jsonl'  # Output từ fakeddit_process_text.py
+def run_validation(raw_path: str, processed_path: str):
+    """
+    Run validation on specified files.
     
+    Args:
+        raw_path: Path to raw JSONL file (CORE_SCHEMA)
+        processed_path: Path to processed JSONL file (EXTENDED_SCHEMA)
+    """
     # 1. KIỂM TRA ĐẦU VÀO (CORE SCHEMA)
-    core_results = validate_jsonl_file(RAW_DATA_PATH, CORE_SCHEMA, "CORE_SCHEMA")
+    core_results = validate_jsonl_file(raw_path, CORE_SCHEMA, "CORE_SCHEMA")
 
     # 2. KIỂM TRA ĐẦU RA (EXTENDED SCHEMA)
-    extended_results = validate_jsonl_file(PROCESSED_DATA_PATH, EXTENDED_SCHEMA, "EXTENDED_SCHEMA")
+    extended_results = validate_jsonl_file(processed_path, EXTENDED_SCHEMA, "EXTENDED_SCHEMA")
 
     # 3. TỔNG KẾT LỖI
     total_errors = core_results['struct_errors'] + core_results['logic_errors'] + \
@@ -156,6 +159,23 @@ def run_validation():
         logger.error("⚠ HÀNH ĐỘNG: CẦN YÊU CẦU CÁC THÀNH VIÊN SỬA DỮ LIỆU. Vui lòng xem log.")
     else:
         logger.info("👍 DỮ LIỆU ĐẠT CHUẨN. Có thể tiếp tục Gán nhãn/Xây dựng Graph.")
+    
+    return total_errors
 
 if __name__ == "__main__":
-    run_validation()
+    import argparse
+    
+    parser = argparse.ArgumentParser(description='Validate Fakeddit data against schemas')
+    parser.add_argument(
+        '--raw',
+        default='data/01_raw/Fakeddit/Fakeddit_pilot_processed_200.jsonl',
+        help='Path to raw JSONL file (CORE_SCHEMA)'
+    )
+    parser.add_argument(
+        '--processed',
+        default='data/03_clean/Fakeddit/train.jsonl',
+        help='Path to processed JSONL file (EXTENDED_SCHEMA)'
+    )
+    
+    args = parser.parse_args()
+    run_validation(args.raw, args.processed)

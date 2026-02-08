@@ -4,7 +4,7 @@ import os
 from pathlib import Path
 import argparse
 
-def convert_ls_export_to_jsonl(input_path, output_path):
+def convert_ls_export_to_jsonl(input_path, output_path, append=False):
     input_file = Path(input_path)
     if not input_file.exists():
         print(f"❌ File không tồn tại: {input_path}")
@@ -20,9 +20,11 @@ def convert_ls_export_to_jsonl(input_path, output_path):
     print(f"🔄 Đang xử lý {len(data)} tasks từ {input_file.name}...")
     
     count = 0
-    with open(output_path, 'w', encoding='utf-8') as f_out:
+    mode = 'a' if append else 'w'
+    with open(output_path, mode, encoding='utf-8') as f_out:
+
         for task in data:
-            # Label Studio export structure:
+            # Label Studio export structure:    
             # task = { "id": 1, "data": { ... }, "annotations": [ ... ] }
             
             # 1. Lấy dữ liệu gốc từ trường 'data'
@@ -83,6 +85,7 @@ def main():
     parser = argparse.ArgumentParser(description='Convert Label Studio JSON export to JSONL')
     parser.add_argument('input', help='Path to Label Studio JSON export file')
     parser.add_argument('output', nargs='?', help='Path to output JSONL file (default: same name .jsonl)')
+    parser.add_argument('--append', action='store_true', help='Append to output file instead of overwriting')
     
     args = parser.parse_args()
     
@@ -93,7 +96,7 @@ def main():
         # Tự động tạo tên file output: input.json -> input.jsonl
         output_path = str(Path(input_path).with_suffix('.jsonl'))
     
-    convert_ls_export_to_jsonl(input_path, output_path)
+    convert_ls_export_to_jsonl(input_path, output_path, append=args.append)
 
 if __name__ == "__main__":
     main()

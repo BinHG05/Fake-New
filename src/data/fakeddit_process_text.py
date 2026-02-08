@@ -662,6 +662,21 @@ class FakedditDataProcessor:
 
 def main():
     """Main function"""
+    import argparse
+    
+    parser = argparse.ArgumentParser(description='Process Fakeddit text data and create Label Studio files')
+    parser.add_argument(
+        '--input',
+        default=os.path.join("data", "02_processed", "dataset_output.jsonl"),
+        help='Path to input JSONL (from image processor)'
+    )
+    parser.add_argument(
+        '--batch-name',
+        default=None,
+        help='Name of the batch (e.g., "batch_200_400") to create a separate folder in 03_clean'
+    )
+    
+    args = parser.parse_args()
     
     print()
     print("=" * 60)
@@ -671,33 +686,31 @@ def main():
     print()
     
     # Define paths following the 01/02/03 structure
-    # INPUT: Đọc từ output của image processor (đã có image_info với processed_path)
-    INPUT_FILE = os.path.join(
-        project_root,
-        "data", "02_processed",
-        "dataset_output.jsonl"  # Output từ fakeddit_preprocessor_image.py
-    )
+    INPUT_FILE = args.input
     
     OUTPUT_02_DIR = os.path.join(
         project_root,
         "data", "02_processed", "Fakeddit"
     )
     
-    OUTPUT_03_DIR = os.path.join(
-        project_root,
-        "data", "03_clean"
-    )
+    # Nếu có batch_name, tạo folder con trong 03_clean/Fakeddit/
+    if args.batch_name:
+        OUTPUT_03_DIR = os.path.join(
+            project_root,
+            "data", "03_clean", "Fakeddit", args.batch_name
+        )
+    else:
+        OUTPUT_03_DIR = os.path.join(
+            project_root,
+            "data", "03_clean"
+        )
     
     # Check if input file exists
     if not os.path.exists(INPUT_FILE):
         print(f"✗ ERROR: Input file not found: {INPUT_FILE}")
         print()
         print("→ Bạn cần chạy fakeddit_preprocessor_image.py TRƯỚC để tạo file này!")
-        print("  Command: python src/data/fakeddit_preprocessor_image.py")
-        print()
-        print("Pipeline đúng:")
-        print("  1. fakeddit_preprocessor_image.py → tạo data/02_processed/dataset_output.jsonl")
-        print("  2. fakeddit_process_text.py       → đọc từ dataset_output.jsonl, tạo 03_clean/")
+        print(f"  Command: python src/data/fakeddit_preprocessor_image.py --input <raw_batch_file>")
         print()
         return
     

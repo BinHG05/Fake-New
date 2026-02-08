@@ -119,6 +119,85 @@ class RedditCrawler:
             return url
         return ""
 
+    def fetch_comments(self, permalink):
+        """
+        Fetch the full comment tree for a given post permalink.
+        Returns a list of comment objects (flat structure with parent_id).
+        """
+        if not permalink:
+            return []
+
+        # Ensure permalink has trailing slash
+        if not permalink.endswith("/"):
+            permalink += "/"
+            
+        url = f"https://www.reddit.com{permalink}.json?limit=100" # Limit top-level comments
+        
+        try:
+            time.sleep(1.0) # Rate limit for comment fetch
+            resp = self.session.get(url, timeout=10)
+            if resp.status_code == 429:
+                self.logger.warning("   ⚠️ Rate limited (429) on comments. Waiting 5s...")
+                time.sleep(5)
+                return []
+            resp.raise_for_status()
+            
+            data = resp.json()
+            # data[0] is the post, data[1] is the comments Listing
+            if len(data) < 2:
+                return []
+                
+            comment_listing = data[1]
+            comments_data = comment_listing.get('data', {}).get('children', [])
+            
+            cascade_nodes = []
+            post_id = data[0]['data']['children'][0]['data']['id']
+
+            for comment in comments_data:
+                self.parse_comment_tree(comment, post_id, cascade_nodes, level=1)
+                
+            return cascade_nodes
+            
+        except Exception as e:
+            self.logger.error(f"   ⚠️ Failed to fetch comments for {permalink}: {e}")
+            return []
+
+    def parse_comment_tree(self, comment_data, parent_id, cascade_nodes, level):
+        """
+        Recursive function to traverse comment replies.
+        """
+        kind = comment_data.get('kind', '')
+        data = comment_data.get('data', {})
+        
+        # 't1' is a comment, 'more' is a "load more" button (skip for now)
+        if kind != 't1': 
+            return
+
+        comment_id = data.get('id')
+        if not comment_id:
+            return
+
+        body = self.clean_text("", data.get('body', ''))
+        if not body:
+            return
+
+        node = {
+            "id": comment_id,
+            "parent_id": parent_id,
+            "user_id": self.standardize_user(data.get('author', '')),
+            "timestamp": int(data.get('created_utc', 0)),
+            "text": body,
+            "level": level
+        }
+        cascade_nodes.append(node)
+
+        # Recursively process replies
+        replies = data.get('replies', "")
+        if isinstance(replies, dict): # If there are replies
+            children = replies.get('data', {}).get('children', [])
+            for child in children:
+                self.parse_comment_tree(child, comment_id, cascade_nodes, level + 1)
+
     def crawl(self):
         self.logger.info(f"🚀 Starting Reddit Crawl (Run ID: {self.run_id}, Version: {CRAWLER_VERSION})")
         existing_ids = self.get_existing_ids()
@@ -155,6 +234,13 @@ class RedditCrawler:
                     post_time = int(p.get('created_utc', 0))
                     if post_time > crawl_time:
                         post_time = crawl_time
+                    
+                    # --- NEW: FETCH CASCADE (COMMENTS) ---
+                    permalink = p.get('permalink')
+                    cascade_data = []
+                    if permalink:
+                        cascade_data = self.fetch_comments(permalink)
+                    # -------------------------------------
 
                     item = {
                         "id": post_id,
@@ -165,6 +251,7 @@ class RedditCrawler:
                         "user_id": self.standardize_user(p.get('author', '')),
                         "retweet_count": 0, # Kept for schema compatibility
                         "comment_count": int(p.get('num_comments', 0)),
+                        "cascade": cascade_data, # <--- NEW FIELD
                         "metadata": {
                             "source": "reddit",
                             "subreddit": group,
