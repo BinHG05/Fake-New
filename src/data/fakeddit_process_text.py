@@ -329,6 +329,7 @@ class FakedditDataProcessor:
             
             # Clean text
             'clean_text': clean_text,
+            'raw_text': raw_text, # KEEP RAW TEXT FOR LABELING CONTEXT
             
             # Text features (REQUIRED by EXTENDED_SCHEMA)
             'text_features': {

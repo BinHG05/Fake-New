@@ -77,7 +77,7 @@ def main():
 
     # Step 4: Validation
     # We use the train.jsonl in the batch folder for validation
-    processed_val_file = f"data/03_clean/Fakeddit/{batch_name}/train.jsonl"
+    processed_val_file = f"data/03_clean/Fakeddit/{batch_name}/Fakeddit/train.jsonl"
     validate_cmd = [
         "python", "validate/validate_schema.py",
         "--raw", raw_batch_file,

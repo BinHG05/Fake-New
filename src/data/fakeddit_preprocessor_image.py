@@ -157,141 +157,32 @@ class ImageProcessor:
             "batch_id": self.batch_id
         }
     
-    def setup_output_directories(self, dataset_name: str):
+    def setup_output_directories(self, dataset_name: str, batch_name: str = None):
         """
         Thiết lập thư mục output
         
         Args:
             dataset_name: Tên dataset (ví dụ: "Fakeddit")
+            batch_name: Tên batch (ví dụ: "200_400")
         """
         # Thư mục images cho batch này
-        self.images_dir = self.output_base_dir / "images" / f"{dataset_name}_{self.batch_timestamp}"
+        # Use batch_name if available for stable caching, else timestamp
+        folder_suffix = batch_name if batch_name else self.batch_timestamp
+        self.images_dir = self.output_base_dir / "images" / f"{dataset_name}_{folder_suffix}"
         self.images_dir.mkdir(parents=True, exist_ok=True)
         
         print(f"✓ Images directory: {self.images_dir}")
-    
-    def _download_image(self, url: str) -> Optional[Image.Image]:
-        """Download image from URL"""
-        try:
-            headers = {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-            }
-            response = requests.get(
-                url, 
-                timeout=self.timeout, 
-                headers=headers,
-                verify=False
-            )
-            response.raise_for_status()
-            
-            img = Image.open(BytesIO(response.content))
-            return img
-            
-        except Exception:
-            return None
-    
-    def resize_image_with_padding(
-        self,
-        img: Image.Image,
-        convert_rgb: bool = True
-    ) -> Optional[Image.Image]:
-        """Resize image to target size WITHOUT distortion using padding"""
-        try:
-            if convert_rgb and img.mode != 'RGB':
-                img = img.convert('RGB')
-            
-            original_width, original_height = img.size
-            target_width, target_height = self.target_size
-            
-            original_ratio = original_width / original_height
-            target_ratio = target_width / target_height
-            
-            if original_ratio > target_ratio:
-                new_width = target_width
-                new_height = int(target_width / original_ratio)
-            else:
-                new_height = target_height
-                new_width = int(target_height * original_ratio)
-            
-            img_resized = img.resize((new_width, new_height), Image.Resampling.LANCZOS)
-            
-            new_img = Image.new('RGB', self.target_size, self.padding_color)
-            
-            paste_x = (target_width - new_width) // 2
-            paste_y = (target_height - new_height) // 2
-            
-            new_img.paste(img_resized, (paste_x, paste_y))
-            
-            return new_img
-            
-        except Exception as e:
-            logger.error(f"Failed to resize image: {e}")
-            return None
-    
-    def process_image(
-        self,
-        media_url: str,
-        post_id: str,
-        use_padding: bool = True
-    ) -> Optional[Dict]:
-        """Process a single image"""
-        try:
-            img = self._download_image(media_url)
-            
-            if img is None:
-                self.stats["download_failed"] += 1
-                return None
-            
-            if use_padding:
-                img_resized = self.resize_image_with_padding(img)
-            else:
-                img_resized = ImageOps.fit(
-                    img, 
-                    self.target_size, 
-                    Image.Resampling.LANCZOS,
-                    centering=(0.5, 0.5)
-                )
-                
-            if img_resized is None:
-                self.stats["processing_failed"] += 1
-                return None
-            
-            # Save với tên có timestamp
-            output_filename = f"{post_id}.jpg"
-            output_path = self.images_dir / output_filename
-            img_resized.save(output_path, "JPEG", quality=90)
-            
-            # Tạo relative path
-            relative_path = str(output_path.relative_to(Path(".")))
-            
-            self.stats["images_success"] += 1
-            
-            return {
-                "processed_path": relative_path,
-                "image_size": list(self.target_size),
-                "is_video": False,
-                "keyframe_paths": [],
-                "processing_method": "padding" if use_padding else "crop",
-                "batch_id": self.batch_id
-            }
-            
-        except Exception as e:
-            logger.error(f"Error processing image for {post_id}: {e}")
-            self.stats["processing_failed"] += 1
-            return None
-    
-    def is_video_url(self, url: str) -> bool:
-        """Check if URL points to a video file"""
-        video_extensions = ['.mp4', '.avi', '.mov', '.mkv', '.flv', '.wmv', '.webm']
-        return any(url.lower().endswith(ext) for ext in video_extensions)
-    
+
+    # ... (skipping _download_image) ...
+
     def process_batch(
         self,
         input_jsonl: str,
         shared_output: str,
         individual_output_base: str,
         dataset_name: str = "Fakeddit",
-        use_padding: bool = True
+        use_padding: bool = True,
+        batch_name: str = None
     ) -> Tuple[str, str]:
         """
         Process a batch of posts from JSONL file
@@ -302,12 +193,13 @@ class ImageProcessor:
             individual_output_base: Base path for individual file (AUTO-INCREMENT)
             dataset_name: Dataset name for organizing files
             use_padding: If True, use padding; if False, use crop
+            batch_name: Name of the batch for stable folder naming
             
         Returns:
             Tuple of (shared_file_path, individual_file_path)
         """
         # Setup output directories
-        self.setup_output_directories(dataset_name)
+        self.setup_output_directories(dataset_name, batch_name)
         
         # Tìm tên file individual không bị ghi đè
         individual_output = OutputFileManager.get_next_filename(individual_output_base)
@@ -544,7 +436,8 @@ def main():
             shared_output=SHARED_OUTPUT,
             individual_output_base=INDIVIDUAL_OUTPUT_BASE,
             dataset_name=DATASET_NAME,
-            use_padding=USE_PADDING
+            use_padding=USE_PADDING,
+            batch_name=batch_name # Pass batch suffix for stable folder
         )
         
         print()

@@ -30,6 +30,10 @@ Nếu bạn cần hiểu sâu về code và cấu trúc hệ thống:
     *   **Dành cho:** Dev, Leader.
     *   **Thành phần chính:** List các file Active/Placeholder/Unused.
 
+*   **[🌐 PHASE_2_DEV_GUIDE.md](./PHASE_2_DEV_GUIDE.md)**
+    *   **Nội dung:** Hướng dẫn kỹ thuật chi tiết Phase 2 (Crawler & Graph).
+    *   **Dành cho:** Team Data, Dev mới.
+
 ---
 
 ## 📋 3. Quản lý Tiến độ (Management)
