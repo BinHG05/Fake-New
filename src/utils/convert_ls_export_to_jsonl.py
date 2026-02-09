@@ -83,20 +83,31 @@ def convert_ls_export_to_jsonl(input_path, output_path, append=False):
 
 def main():
     parser = argparse.ArgumentParser(description='Convert Label Studio JSON export to JSONL')
-    parser.add_argument('input', help='Path to Label Studio JSON export file')
-    parser.add_argument('output', nargs='?', help='Path to output JSONL file (default: same name .jsonl)')
+    parser.add_argument('--input', required=True, help='Path to Label Studio JSON export file')
+    parser.add_argument('--output', help='Path to output JSONL file (default: same name .jsonl)')
     parser.add_argument('--append', action='store_true', help='Append to output file instead of overwriting')
+    parser.add_argument('--merge-master', action='store_true', help='Merge converted data directly into data/03_clean/Fakeddit/labeled_master.jsonl')
     
     args = parser.parse_args()
     
     input_path = args.input
-    if args.output:
+    append_mode = args.append
+
+    if args.merge_master:
+        # Define master path relative to project root
+        # Assuming script is in src/utils, project root is ../../
+        base_dir = Path(__file__).resolve().parent.parent.parent
+        output_path = base_dir / 'data' / '03_clean' / 'Fakeddit' / 'labeled_master.jsonl'
+        append_mode = True # Force append mode
+        print(f"🚀 Chế độ Merge Master được kích hoạt.")
+        print(f"📂 Output sẽ được nối vào: {output_path}")
+    elif args.output:
         output_path = args.output
     else:
         # Tự động tạo tên file output: input.json -> input.jsonl
         output_path = str(Path(input_path).with_suffix('.jsonl'))
     
-    convert_ls_export_to_jsonl(input_path, output_path, append=args.append)
+    convert_ls_export_to_jsonl(input_path, str(output_path), append=append_mode)
 
 if __name__ == "__main__":
     main()
