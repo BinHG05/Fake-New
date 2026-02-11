@@ -173,8 +173,105 @@ class ImageProcessor:
         
         print(f"✓ Images directory: {self.images_dir}")
 
-    # ... (skipping _download_image) ...
+    def _download_image(self, url: str) -> Optional[Image.Image]:
+        """Download image from URL"""
+        try:
+            headers = {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+            }
+            response = requests.get(url, headers=headers, timeout=self.timeout, stream=True)
+            response.raise_for_status()
+            
+            # Check content type
+            content_type = response.headers.get('content-type', '')
+            if 'image' not in content_type and 'application/octet-stream' not in content_type:
+                # logger.warning(f"URL is not an image: {url} ({content_type})")
+                return None
+            
+            image = Image.open(BytesIO(response.content))
+            return image
+        except Exception as e:
+            # logger.warning(f"Download failed {url}: {e}")
+            self.stats["download_failed"] += 1
+            return None
 
+    def is_video_url(self, url: str) -> bool:
+        """Check if URL points to a video"""
+        if not url:
+            return False
+        
+        video_extensions = {'.mp4', '.avi', '.mov', '.wmv', '.flv', '.webm', '.mkv', '.gif', '.gifv'}
+        url_lower = url.lower()
+        
+        # Check extension
+        if any(url_lower.endswith(ext) for ext in video_extensions):
+            return True
+            
+        # Check domain
+        video_domains = {'youtube.com', 'youtu.be', 'vimeo.com', 'dailymotion.com', 'twitch.tv', 'tiktok.com'}
+        if any(domain in url_lower for domain in video_domains):
+            return True
+            
+        return False
+
+    def process_image(self, url: str, post_id: str, use_padding: bool = True) -> Optional[Dict]:
+        """
+        Download and process image
+        
+        Returns:
+            Dictionary with image info or None if failed
+        """
+        try:
+            # Download
+            image = self._download_image(url)
+            if image is None:
+                return None
+            
+            # Convert to RGB if needed
+            if image.mode != 'RGB':
+                image = image.convert('RGB')
+            
+            # Resize/Pad
+            try:
+                resample_method = Image.Resampling.LANCZOS
+            except AttributeError:
+                resample_method = Image.LANCZOS
+
+            if use_padding:
+                # Resize keeping aspect ratio
+                image.thumbnail(self.target_size, resample_method)
+                
+                # Create new image with padding color
+                new_image = Image.new('RGB', self.target_size, self.padding_color)
+                
+                # Paste resized image in center
+                paste_x = (self.target_size[0] - image.width) // 2
+                paste_y = (self.target_size[1] - image.height) // 2
+                new_image.paste(image, (paste_x, paste_y))
+                processed_image = new_image
+            else:
+                # Center crop
+                processed_image = ImageOps.fit(image, self.target_size, method=resample_method)
+            
+            # Save
+            filename = f"{post_id}.jpg"
+            save_path = self.images_dir / filename
+            processed_image.save(save_path, "JPEG", quality=85)
+            
+            self.stats["images_success"] += 1
+            
+            return {
+                "filename": filename,
+                "path": str(save_path),
+                "width": processed_image.width,
+                "height": processed_image.height,
+                "original_url": url
+            }
+            
+        except Exception as e:
+            logger.error(f"Error processing image {url}: {e}")
+            self.stats["processing_failed"] += 1
+            return None
     def process_batch(
         self,
         input_jsonl: str,
