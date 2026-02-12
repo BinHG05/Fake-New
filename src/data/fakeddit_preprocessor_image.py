@@ -185,13 +185,13 @@ class ImageProcessor:
             # Check content type
             content_type = response.headers.get('content-type', '')
             if 'image' not in content_type and 'application/octet-stream' not in content_type:
-                # logger.warning(f"URL is not an image: {url} ({content_type})")
+                logger.warning(f"URL is not an image: {url} ({content_type})")
                 return None
             
             image = Image.open(BytesIO(response.content))
             return image
         except Exception as e:
-            # logger.warning(f"Download failed {url}: {e}")
+            logger.warning(f"Download failed {url}: {e}")
             self.stats["download_failed"] += 1
             return None
 
@@ -262,10 +262,13 @@ class ImageProcessor:
             
             return {
                 "filename": filename,
-                "path": str(save_path),
+                "processed_path": str(save_path),
                 "width": processed_image.width,
                 "height": processed_image.height,
-                "original_url": url
+                "image_size": [processed_image.width, processed_image.height], # Required for schema
+                "original_url": url,
+                "is_video": False, # Explicitly set for schema
+                "keyframe_paths": []
             }
             
         except Exception as e:
@@ -351,7 +354,13 @@ class ImageProcessor:
                     
                     if image_info is not None:
                         record['image_info'] = image_info
-                        processed_records.append(record)
+                    else:
+                        # Keep record but mark image as missing/failed in a way downstream can handle?
+                        # Or just leave 'image_info' missing? 
+                        # Let's keep the record so we don't lose text data.
+                        record['image_download_failed'] = True
+                    
+                    processed_records.append(record)
                     
                 except json.JSONDecodeError:
                     logger.error("Invalid JSON line")

@@ -319,6 +319,20 @@ class FakedditDataProcessor:
         if timestamp > current_time:
             timestamp = current_time
         
+        # Image info logic
+        image_info = record.get('image_info')
+        if image_info and image_info.get('processed_path'):
+            # Ensure image_size exists (Schema requirement)
+            if 'image_size' not in image_info and 'width' in image_info and 'height' in image_info:
+                image_info['image_size'] = [image_info['width'], image_info['height']]
+        else:
+            image_info = {
+                'processed_path': '',  # Cần chạy fakeddit_preprocessor_image.py để có ảnh
+                'image_size': [224, 224],  # Default standard size
+                'is_video': False,
+                'keyframe_paths': []  # Empty since not video
+            }
+
         # Build EXTENDED_SCHEMA record
         extended_record = {
             # Core identification
@@ -338,16 +352,8 @@ class FakedditDataProcessor:
                 'sentiment_score': round(sentiment_score, 4)
             },
             
-            # Image info - BẢO TỒN từ image processor nếu đã có, nếu không thì dùng placeholder
-            'image_info': record.get('image_info') if (
-                record.get('image_info') and 
-                record.get('image_info', {}).get('processed_path')
-            ) else {
-                'processed_path': '',  # Cần chạy fakeddit_preprocessor_image.py để có ảnh
-                'image_size': [224, 224],  # Default standard size
-                'is_video': False,
-                'keyframe_paths': []  # Empty since not video
-            },
+            # Image info
+            'image_info': image_info,
             
             # Optional: User features (if available)
             'user_features': {},
