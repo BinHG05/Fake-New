@@ -24,10 +24,17 @@ def main():
     graphs = builder.process_dataset(items)
 
     # Lưu kết quả thành từng file .pt
+    # Lưu kết quả thành từng file .pt
     for data in graphs:
         save_path = os.path.join(OUTPUT_FOLDER, f"{data.post_id}.pt")
+        
+        # Kiểm tra nếu file đã tồn tại thì bỏ qua (Resume)
+        if os.path.exists(save_path):
+            print(f"⏩ [SKIP] Đồ thị đã tồn tại: {data.post_id}")
+            continue
+
         torch.save(data, save_path)
-        print(f"Đã tạo đồ thị cho bài: {data.post_id}")
+        print(f"✅ [NEW] Đã tạo đồ thị cho bài: {data.post_id}")
 
 if __name__ == "__main__":
     main()

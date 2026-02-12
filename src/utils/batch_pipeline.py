@@ -85,6 +85,22 @@ def main():
     ]
     if not run_command(validate_cmd, "Validating Batch Schema"):
         print("⚠️ Validation reported issues, but pipeline finished. Check logs.")
+    # Step 5: Convert to JSON for Label Studio (using existing script)
+    # train.jsonl -> train_for_ls.json
+    try:
+        if os.path.exists(processed_val_file):
+            ls_output_file = f"{output_clean_dir}/train_for_ls.json"
+            convert_cmd = [
+                "python", "src/utils/convert_to_ls_json.py",
+                "--input", processed_val_file,
+                "--output", ls_output_file,
+                "--docker" # Assuming Docker is used as per guide, or we can make this configurable
+            ]
+            run_command(convert_cmd, "Converting to Label Studio Format")
+        else:
+            print(f"⚠️ Could not find {processed_val_file} to convert for Label Studio.")
+    except Exception as e:
+        print(f"⚠️ Error in LS conversion step: {e}")
 
     print("\n" + "=" * 60)
     print(f"🎉 BATCH {batch_name.upper()} PROCESSED SUCCESSFULLY!")

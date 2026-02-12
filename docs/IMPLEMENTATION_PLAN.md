@@ -1,64 +1,55 @@
-# Phase 2B: Cascade Data Collection Implementation Plan
+# 🚀 Phase 2 Execution Plan: Data Enrichment & Propagation Modeling
 
-## Mục tiêu
-Nâng cấp `reddit_crawler.py` để thu thập **toàn bộ cây thảo luận (comment tree)** của mỗi bài viết. Dữ liệu này là nguyên liệu bắt buộc để xây dựng **Cascade Graph** (Mô hình lan truyền tin tức).
+Tài liệu này hướng dẫn chi tiết các bước **chạy code** để thực hiện Phase 2: Từ việc lấy dữ liệu lan truyền (Cascade) đến việc đóng gói thành các đồ thị (Graph) cho mô hình AI.
 
-## Lý do cần thiết
-Hiện tại crawler chỉ lấy thông tin bài gốc (Post). Để phân tích tin giả, ta cần biết:
-- Ai là người phản hồi? (User node)
-- Phản hồi lúc nào? (Temporal edge)
-- Phản hồi cho ai? (Structure)
+Dựa trên phân tích các file source code:
+1.  `src/data/crawler_enrich.py`
+2.  `build_final_graphs.py`
 
-## Thiết kế Kỹ thuật
+---
 
-### 1. Data Schema Mới
-Mỗi dòng JSONL sẽ có thêm trường `cascade`:
+## 📋 Tổng quan Quy trình (Workflow)
 
-```json
-{
-  "id": "post_id",
-  "title": "...",
-  "cascade": [
-    {
-      "id": "comment_id_1",
-      "parent_id": "post_id",
-      "user_id": "user_A",
-      "timestamp": 1234567890,
-      "text": "Fake news!",
-      "level": 1
-    },
-    {
-      "id": "comment_id_2",
-      "parent_id": "comment_id_1",
-      "user_id": "user_B",
-      "timestamp": 1234567999,
-      "text": "No it is not",
-      "level": 2
-    }
-  ]
-}
-```
+| Bước | Tên nhiệm vụ | Script thực hiện | Input (Đầu vào) | Output (Đầu ra) |
+| :--- | :--- | :--- | :--- | :--- |
+| **1** | **Làm giàu dữ liệu (Enrichment)** | `src/data/crawler_enrich.py` | `data/03_clean/Fakeddit/labeled_master.jsonl` | `data/reddit_enriched_data.jsonl` |
+| **2** | **Xây dựng đồ thị (Graph Building)** | `build_final_graphs.py` | `data/reddit_enriched_data.jsonl` | `data/processed_graphs/*.pt` |
 
-### 2. Thuật toán Crowling (DFS Recursive)
-Sử dụng Reddit JSON API: `https://www.reddit.com{permalink}.json`
+---
 
-- **Input:** Permalink của bài post.
-- **Process:**
-    - Request JSON.
-    - Parse object `data` -> `children` -> `replies`.
-    - Dùng đệ quy để duyệt hết các node con (replies of replies).
-- **Constraints:**
-    - Rate limit: Cần `time.sleep` hợp lý.
-    - Depth limit: Giới hạn độ sâu để tránh loop vô hạn.
+## 🛠️ Chi tiết từng bước
 
-## Proposed Changes
+### 1. Bước 1: Thu thập dữ liệu lan truyền (Enrichment)
+**Mục tiêu:** Lấy toàn bộ cây bình luận (Comment Tree) của các bài viết đã được gán nhãn. Đây chính là cấu trúc "lan truyền" của tin tức.
 
-### [MODIFY] [reddit_crawler.py](file:///d:/NCKH_Project/Project/src/data/reddit_crawler.py)
-- Thêm method `fetch_comments(self, permalink)`
-- Thêm method `parse_comment_tree(self, comment_data, parent_id)`
-- Cập nhật hàm `crawl()` để gọi `fetch_comments` cho mỗi bài viết.
+*   **Logic:** Script sẽ đọc file dữ liệu gốc (`labeled_master.jsonl`), lấy ID bài viết, sau đó dùng `RedditCrawler` để tải toàn bộ comment về.
+*   **Lệnh thực thi:**
+    ```bash
+    python src/data/crawler_enrich.py
+    ```
+*   **Lưu ý:**
+    *   Quá trình này có thể tốn thời gian do API Rate Limit của Reddit.
+    *   Script có cơ chế **Resume**: Nếu chạy lại, nó sẽ tự động bỏ qua các bài đã tải xong.
 
-## Verification Plan
-1. Chạy crawler với limit nhỏ (5 bài).
-2. Kiểm tra file output xem có trường `cascade` không.
-3. Kiểm tra cấu trúc phân cấp (parent_id) có đúng logic không.
+### 2. Bước 2: Tạo mô hình lan truyền (Propagation Graphs)
+**Mục tiêu:** Chuyển đổi dữ liệu thô (Text, Image, Comment structure) thành dạng đồ thị `.pt`.
+
+*   **Logic:**
+    *   Sử dụng `embedding_extractor` để chuyển đổi nội dung bài viết và comment thành vector số.
+    *   Xây dựng file đồ thị `.pt` cho mỗi bài viết (Cascade Graph).
+*   **Lệnh thực thi:**
+    ```bash
+    python build_final_graphs.py
+    ```
+*   **Kết quả:**
+    *   Dữ liệu đồ thị từng bài viết sẽ nằm trong `data/processed_graphs/`.
+    *   Lưu ý: File đồ thị tổng hợp (`graph.pt`) nếu đã có ở `data/04_graph/` thì đó là Interaction Graph (Phase 2A), khác với Cascade Graph (Phase 2B) này.
+
+---
+
+## ⏭️ Bước tiếp theo: Phase 3 (Baseline Training)
+
+Sau khi hoàn thành tạo dữ liệu đồ thị, chúng ta sẽ chuyển sang **Phase 3**:
+1.  **Baseline Text/Image:** Train BERT/ResNet trên dữ liệu gốc.
+2.  **Propagation Model:** Train GNN trên dữ liệu Cascade vừa tạo.
+
