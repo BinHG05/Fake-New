@@ -24,7 +24,7 @@ class TextEmbeddingExtractor:
         self, 
         model_name: str = 'xlm-roberta-base',
         device: Optional[str] = None,
-        max_length: int = 512
+        max_length: int = 512   
     ):
         """
         Args:
