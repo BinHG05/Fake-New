@@ -13,7 +13,7 @@ CORE_SCHEMA = {
         "user_id": {"type": ["string", "null"], "pattern": "^[A-Za-z0-9_-]{1,20}$"}, # Reddit: cho phép null, dấu -, tối đa 20 ký tự
         "retweet_count": {"type": "integer", "minimum": 0}
     },
-    "additionalProperties": False
+    "additionalProperties": True
 }
 
 EXTENDED_SCHEMA = {

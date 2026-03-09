@@ -1,6 +1,12 @@
 import torch
 import json
 import os
+import sys
+
+# Đảm bảo thư mục gốc project nằm trong sys.path
+# (src/utils/build_final_graphs.py -> lùi 2 cấp = project root)
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
+
 from src.features.cascade_graph_builder import CascadeGraphBuilder
 
 def main():

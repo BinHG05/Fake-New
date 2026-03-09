@@ -127,7 +127,7 @@ docker-compose up -d
 ## Bước 7: Merge (Leader làm)
 
 ```powershell
-python src/utils/convert_ls_export_to_jsonl.py "path/to/export.json" "data/03_clean/Fakeddit/labeled_master.jsonl" --append
+python src/utils/convert_ls_export_to_jsonl.py --input "data/03_clean/Fakeddit/batch_800_1000/Fakeddit/export_batch_800_1000.json" --output "data/03_clean/Fakeddit/labeled_master.jsonl" --append
 ```
 
 ---

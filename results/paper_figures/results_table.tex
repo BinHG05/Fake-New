@@ -1,0 +1,28 @@
+\begin{table}[h]
+\centering
+\caption{Comprehensive Model Comparison}
+\label{tab:results}
+\begin{tabular}{lccc}
+\hline
+\textbf{Model} & \textbf{6-Class F1} & \textbf{6-Class Acc} & \textbf{Binary Acc} \\
+\hline
+\multicolumn{4}{l}{\textit{Phase 3 Baselines}} \\
+  Text Only & 0.1289 & 0.2643 & 0.5250 \\
+  Image Only & 0.1017 & 0.4393 & 0.6071 \\
+  Fusion & 0.1017 & 0.4393 & 0.6071 \\
+  Graph Gcn & 0.1637 & 0.2786 & 0.6286 \\
+  Graph Sage & 0.1895 & 0.2357 & 0.6179 \\
+  Graph Gat & 0.1713 & 0.3571 & 0.6393 \\
+\hline
+\multicolumn{4}{l}{\textit{Phase 4 Ablation}} \\
+  \textbf{Full Model} & 0.1400 & 0.2393 & 0.6643 \\
+  {Text Only} & 0.1524 & 0.1929 & 0.4393 \\
+  {Image Only} & 0.0956 & 0.1643 & 0.4214 \\
+  {No Graph} & 0.1473 & 0.1750 & 0.4607 \\
+  {Text Graph Only} & 0.1580 & 0.1929 & 0.4571 \\
+  {Gated Fusion} & 0.1674 & 0.2036 & 0.4607 \\
+\hline
+  \textbf{Ours (mean $\pm$ std)} & $0.1735 \pm 0.0156$ & $0.2964 \pm 0.0366$ & $0.6364 \pm 0.0201$ \\
+\hline
+\end{tabular}
+\end{table}
