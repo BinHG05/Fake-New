@@ -36,3 +36,4 @@ dependencies:
     - pyyaml # Đọc config.yaml
     - label-studio # Công cụ gán nhãn cho E
     - pytest # Unit Testing
+    - flask # Web demo dashboard
