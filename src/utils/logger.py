@@ -1,1 +1,0 @@
-def log(): pass

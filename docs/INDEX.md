@@ -61,7 +61,7 @@ docker-compose up -d
 ### Script quan trọng
 | Task | Lệnh |
 |------|------|
-| **Chạy Pipeline Batch 400-600** | `python src/utils/batch_pipeline.py --start 400 --count 200` |
+| **Chạy Pipeline Batch 400-600** | `python src/utils/batch_pipeline.py --start 1200 --count 200` |
 | **Gộp file sau khi gán nhãn** | `python src/utils/convert_ls_export_to_jsonl.py <input> <output> --append` |
 | **Train Pilot Model** | `python src/training/train_gnn.py` |
 

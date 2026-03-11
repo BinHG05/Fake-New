@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔍 Fake News Detection Dashboard</title>
+    <meta name="description"
+        content="Dashboard điều khiển hệ thống phát hiện tin giả đa phương thức sử dụng Multimodal GNN">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <!-- ═══════════════ Particles Background ═══════════════ -->
+    <canvas id="particles"></canvas>
+
+    <!-- ═══════════════ Navigation ═══════════════ -->
+    <nav class="navbar">
+        <div class="nav-brand">
+            <span class="logo-icon">🔍</span>
+            <span class="logo-text">FakeNews<span class="accent">AI</span></span>
+        </div>
+        <div class="nav-links">
+            <a href="#hero" class="nav-link active">Tổng quan</a>
+            <a href="#pipeline" class="nav-link">Pipeline</a>
+            <a href="#processing" class="nav-link">Xử lý</a>
+            <a href="#training" class="nav-link">Training</a>
+            <a href="#results" class="nav-link">Kết quả</a>
+            <a href="#history" class="nav-link">Lịch sử</a>
+        </div>
+        <div class="nav-status" id="navStatus">
+            <span class="status-dot idle"></span>
+            <span class="status-text">Sẵn sàng</span>
+        </div>
+    </nav>
+
+    <!-- ═══════════════ Hero Section ═══════════════ -->
+    <section id="hero" class="section hero">
+        <div class="hero-content">
+            <div class="hero-badge">🎓 NCKH Project 2026</div>
+            <h1 class="hero-title">
+                Multimodal <span class="gradient-text">Fake News</span><br>Detection System
+            </h1>
+            <p class="hero-subtitle">
+                Hệ thống AI phát hiện tin giả kết hợp <strong>Văn bản</strong> + <strong>Hình ảnh</strong> + <strong>Đồ
+                    thị lan truyền</strong>
+                <br>sử dụng Cross-Attention Fusion & Graph Neural Network
+            </p>
+            <div class="hero-stats" id="heroStats">
+                <div class="stat-card">
+                    <div class="stat-value" id="statRaw">—</div>
+                    <div class="stat-label">Raw Posts</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="statEnriched">—</div>
+                    <div class="stat-label">Enriched</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="statGraphs">—</div>
+                    <div class="stat-label">Graphs</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="statModels">—</div>
+                    <div class="stat-label">Models</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Architecture Diagram -->
+        <div class="architecture">
+            <h3 class="arch-title">Kiến trúc hệ thống</h3>
+            <div class="arch-flow">
+                <div class="arch-node encoder">
+                    <div class="arch-icon">📝</div>
+                    <div class="arch-label">XLM-RoBERTa</div>
+                    <div class="arch-dim">768d</div>
+                </div>
+                <div class="arch-arrow">→</div>
+                <div class="arch-node fusion">
+                    <div class="arch-icon">🔀</div>
+                    <div class="arch-label">Cross-Attention</div>
+                    <div class="arch-dim">Fusion 256d</div>
+                </div>
+                <div class="arch-arrow">→</div>
+                <div class="arch-node gnn">
+                    <div class="arch-icon">🔗</div>
+                    <div class="arch-label">GraphSAGE</div>
+                    <div class="arch-dim">× 2 layers</div>
+                </div>
+                <div class="arch-arrow">→</div>
+                <div class="arch-node classifier">
+                    <div class="arch-icon">🎯</div>
+                    <div class="arch-label">Classifier</div>
+                    <div class="arch-dim">6 classes</div>
+                </div>
+            </div>
+            <div class="arch-flow" style="margin-top: 0.5rem;">
+                <div class="arch-node encoder">
+                    <div class="arch-icon">🖼️</div>
+                    <div class="arch-label">ResNet-50</div>
+                    <div class="arch-dim">2048d</div>
+                </div>
+                <div class="arch-arrow">↗</div>
+                <div class="arch-note">Image → K, V</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════════ Data Pipeline Section ═══════════════ -->
+    <section id="pipeline" class="section">
+        <h2 class="section-title">🕷️ Data Pipeline</h2>
+        <p class="section-desc">Cào dữ liệu từ Reddit, làm giàu với comment tree, xây dựng đồ thị, và trực quan hóa</p>
+
+        <div class="pipeline-grid">
+            <!-- Step 1: Crawl -->
+            <div class="pipeline-card" id="crawlCard">
+                <div class="card-header">
+                    <div class="step-badge">Bước 1</div>
+                    <h3>📡 Reddit Crawler</h3>
+                </div>
+                <p class="card-desc">Cào bài viết mới từ Reddit (worldnews, politics, technology...)</p>
+                <div class="card-controls">
+                    <div class="control-row">
+                        <label>Số bài/sub:</label>
+                        <input type="number" id="crawlLimit" value="25" min="1" max="100" class="input-sm">
+                    </div>
+                    <div class="control-row">
+                        <label>
+                            <input type="checkbox" id="crawlImagesOnly"> Chỉ bài có ảnh
+                        </label>
+                    </div>
+                    <button class="btn btn-primary" onclick="startCrawl()">
+                        <span class="btn-icon">▶</span> Bắt đầu cào
+                    </button>
+                </div>
+                <div class="log-container hidden" id="crawlLog">
+                    <div class="log-header">
+                        <span>📋 Output</span>
+                        <button class="btn-icon-sm" onclick="clearLog('crawlLog')">✕</button>
+                    </div>
+                    <pre class="log-content"></pre>
+                </div>
+            </div>
+
+            <!-- Step 2: Enrich -->
+            <div class="pipeline-card" id="enrichCard">
+                <div class="card-header">
+                    <div class="step-badge">Bước 2</div>
+                    <h3>💬 Enrich Data</h3>
+                </div>
+                <p class="card-desc">Gọi Reddit API lấy toàn bộ comment tree cho mỗi bài</p>
+                <div class="card-controls">
+                    <button class="btn btn-primary" onclick="startEnrich()">
+                        <span class="btn-icon">▶</span> Bắt đầu enrich
+                    </button>
+                </div>
+                <div class="log-container hidden" id="enrichLog">
+                    <div class="log-header">
+                        <span>📋 Output</span>
+                        <button class="btn-icon-sm" onclick="clearLog('enrichLog')">✕</button>
+                    </div>
+                    <pre class="log-content"></pre>
+                </div>
+            </div>
+
+            <!-- Step 3: Build Graphs -->
+            <div class="pipeline-card" id="graphCard">
+                <div class="card-header">
+                    <div class="step-badge">Bước 3</div>
+                    <h3>🔗 Build Graphs</h3>
+                </div>
+                <p class="card-desc">Chuyển comment tree → đồ thị PyG (.pt) với embedding XLM-R 768d</p>
+                <div class="card-controls">
+                    <button class="btn btn-primary" onclick="startBuildGraphs()">
+                        <span class="btn-icon">▶</span> Xây dựng đồ thị
+                    </button>
+                </div>
+                <div class="log-container hidden" id="graphLog">
+                    <div class="log-header">
+                        <span>📋 Output</span>
+                        <button class="btn-icon-sm" onclick="clearLog('graphLog')">✕</button>
+                    </div>
+                    <pre class="log-content"></pre>
+                </div>
+            </div>
+
+            <!-- Step 4: Visualize -->
+            <div class="pipeline-card" id="vizCard">
+                <div class="card-header">
+                    <div class="step-badge">Bước 4</div>
+                    <h3>👁️ Visualize</h3>
+                </div>
+                <p class="card-desc">Tạo HTML tương tác vis.js để xem cấu trúc đồ thị cascade</p>
+                <div class="card-controls">
+                    <button class="btn btn-primary" onclick="startVisualize()">
+                        <span class="btn-icon">▶</span> Tạo visualization
+                    </button>
+                    <button class="btn btn-secondary" id="viewVizBtn" onclick="viewVisualization()"
+                        style="display:none">
+                        🗺️ Xem đồ thị
+                    </button>
+                </div>
+                <div class="log-container hidden" id="vizLog">
+                    <div class="log-header">
+                        <span>📋 Output</span>
+                        <button class="btn-icon-sm" onclick="clearLog('vizLog')">✕</button>
+                    </div>
+                    <pre class="log-content"></pre>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════════ Processing Section ═══════════════ -->
+    <section id="processing" class="section">
+        <h2 class="section-title">⚙️ Data Processing</h2>
+        <p class="section-desc">Reddit Pipeline, Fakeddit Batch, Merge splits, và Label Studio conversion</p>
+
+        <div class="pipeline-grid">
+            <!-- Reddit Pipeline -->
+            <div class="pipeline-card" id="redditPipeCard">
+                <div class="card-header">
+                    <div class="step-badge" style="background:linear-gradient(135deg,#f093fb,#f5576c)">Pipeline</div>
+                    <h3>🔄 Reddit Pipeline</h3>
+                </div>
+                <p class="card-desc">Xử lý dữ liệu Reddit: Image → Text → Validate → Label Studio (Auto/Manual)</p>
+                <div class="card-controls">
+                    <div class="control-row">
+                        <label>Chế độ:</label>
+                        <select id="pipelineMode" class="input-sm" style="width:100px"
+                            onchange="togglePipelineManual()">
+                            <option value="auto">Auto</option>
+                            <option value="manual">Manual</option>
+                        </select>
+                    </div>
+                    <div class="control-row hidden" id="pipelineManualOpts">
+                        <label>Start:</label>
+                        <input type="number" id="pipelineStart" value="0" min="0" class="input-sm">
+                        <label>Count:</label>
+                        <input type="number" id="pipelineCount" value="50" min="1" class="input-sm">
+                    </div>
+                    <button class="btn btn-primary" onclick="startRedditPipeline()">
+                        <span class="btn-icon">▶</span> Chạy Pipeline
+                    </button>
+                </div>
+                <div class="log-container hidden" id="redditPipeLog">
+                    <div class="log-header">
+                        <span>📋 Output</span>
+                        <button class="btn-icon-sm" onclick="clearLog('redditPipeLog')">✕</button>
+                    </div>
+                    <pre class="log-content"></pre>
+                </div>
+            </div>
+
+            <!-- Fakeddit Batch Pipeline -->
+            <div class="pipeline-card" id="batchPipeCard">
+                <div class="card-header">
+                    <div class="step-badge" style="background:linear-gradient(135deg,#4facfe,#00f2fe)">Batch</div>
+                    <h3>📦 Fakeddit Batch</h3>
+                </div>
+                <p class="card-desc">Xử lý batch dữ liệu Fakeddit: Extract → Image → Text → Validate</p>
+                <div class="card-controls">
+                    <div class="control-row">
+                        <label>Start:</label>
+                        <input type="number" id="batchStart" value="0" min="0" class="input-sm">
+                        <label>Count:</label>
+                        <input type="number" id="batchCount" value="200" min="1" class="input-sm">
+                    </div>
+                    <button class="btn btn-primary" onclick="startBatchPipeline()">
+                        <span class="btn-icon">▶</span> Chạy Batch
+                    </button>
+                </div>
+                <div class="log-container hidden" id="batchPipeLog">
+                    <div class="log-header">
+                        <span>📋 Output</span>
+                        <button class="btn-icon-sm" onclick="clearLog('batchPipeLog')">✕</button>
+                    </div>
+                    <pre class="log-content"></pre>
+                </div>
+            </div>
+
+            <!-- Convert LS Export -->
+            <div class="pipeline-card" id="convertLSCard">
+                <div class="card-header">
+                    <div class="step-badge" style="background:linear-gradient(135deg,#fbbf24,#f59e0b)">Convert</div>
+                    <h3>🏷️ LS Export → JSONL</h3>
+                </div>
+                <p class="card-desc">Chuyển Label Studio JSON export sang JSONL và merge vào labeled_master.jsonl</p>
+                <div class="card-controls">
+                    <div class="control-row" style="flex-wrap:wrap;gap:0.4rem">
+                        <label>Chọn file:</label>
+                        <select id="lsInputFile" class="input" style="font-size:0.8rem;flex:1">
+                            <option value="">Đang tải...</option>
+                        </select>
+                        <button class="btn btn-sm btn-secondary" onclick="loadLSExports()"
+                            title="Làm mới danh sách">🔄</button>
+                    </div>
+                    <div class="control-row">
+                        <label>
+                            <input type="checkbox" id="lsMergeMaster" checked> Merge vào master (--merge-master)
+                        </label>
+                    </div>
+                    <button class="btn btn-primary" onclick="startConvertLS()">
+                        <span class="btn-icon">▶</span> Convert & Merge
+                    </button>
+                </div>
+                <div class="log-container hidden" id="convertLSLog">
+                    <div class="log-header">
+                        <span>📋 Output</span>
+                        <button class="btn-icon-sm" onclick="clearLog('convertLSLog')">✕</button>
+                    </div>
+                    <pre class="log-content"></pre>
+                </div>
+            </div>
+
+            <!-- Auto-Labeling -->
+            <div class="pipeline-card" id="autoLabelCard">
+                <div class="card-header">
+                    <div class="step-badge" style="background:linear-gradient(135deg,#a78bfa,#7c3aed)">AI Label</div>
+                    <h3>🤖 Auto-Labeling</h3>
+                </div>
+                <p class="card-desc">Tự động gán nhãn bằng AI — CLIP multimodal (text+image) hoặc text-only</p>
+                <div class="card-controls">
+                    <div class="control-row" style="flex-wrap:wrap;gap:0.4rem">
+                        <label>File JSONL:</label>
+                        <select id="autoLabelInput" class="input" style="font-size:0.8rem;flex:1">
+                            <option value="">Đang tải...</option>
+                        </select>
+                        <button class="btn btn-sm btn-secondary" onclick="loadAutoLabelFiles()"
+                            title="Làm mới">🔄</button>
+                    </div>
+                    <div class="control-row">
+                        <label>Phương pháp:</label>
+                        <select id="autoLabelMethod" class="input-sm" style="width:180px">
+                            <option value="groq">🧠 Groq LLM (Best)</option>
+                            <option value="clip">🖼️ CLIP (Text+Image)</option>
+                            <option value="text">📝 Text-only</option>
+                        </select>
+                    </div>
+                    <div class="control-row">
+                        <label>Chế độ:</label>
+                        <select id="autoLabelMode" class="input-sm" style="width:130px">
+                            <option value="binary">Binary (True/Fake)</option>
+                            <option value="fine">Fine (6 lớp)</option>
+                        </select>
+                    </div>
+                    <div class="control-row">
+                        <label>Threshold:</label>
+                        <input type="number" id="autoLabelThreshold" value="0.3" min="0" max="1" step="0.05"
+                            class="input-sm" style="width:70px">
+                        <label>Limit:</label>
+                        <input type="number" id="autoLabelLimit" value="" min="1" placeholder="All" class="input-sm"
+                            style="width:70px">
+                    </div>
+                    <div class="control-row">
+                        <label>
+                            <input type="checkbox" id="autoLabelLS" checked> Export LS Predictions
+                        </label>
+                    </div>
+                    <button class="btn btn-primary" onclick="startAutoLabel()">
+                        <span class="btn-icon">🤖</span> Chạy Auto-Label
+                    </button>
+                </div>
+                <div class="log-container hidden" id="autoLabelLog">
+                    <div class="log-header">
+                        <span>📋 Output</span>
+                        <button class="btn-icon-sm" onclick="clearLog('autoLabelLog')">✕</button>
+                    </div>
+                    <pre class="log-content"></pre>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════════ Training Section ═══════════════ -->
+    <section id="training" class="section">
+        <h2 class="section-title">🏋️ Model Training</h2>
+        <p class="section-desc">Train baseline models và Multimodal GNN — mỗi lần chạy được lưu lại</p>
+
+        <div class="training-layout">
+            <!-- Config Panel -->
+            <div class="config-panel">
+                <h3>⚙️ Cấu hình Training</h3>
+
+                <div class="form-group">
+                    <label>Model Type</label>
+                    <select id="modelType" class="input" onchange="updateTrainingForm()">
+                        <option value="text">📝 Text-Only (XLM-RoBERTa)</option>
+                        <option value="image">🖼️ Image-Only (ResNet-50)</option>
+                        <option value="fusion">🔀 Simple Fusion (Text + Image)</option>
+                        <option value="gnn">🔗 Graph GNN (Cascade)</option>
+                        <option value="multimodal">🧠 Multimodal GNN (Phase 4)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Epochs</label>
+                    <input type="number" id="trainEpochs" class="input" value="20" min="1" max="200">
+                </div>
+
+                <div class="form-group">
+                    <label>Learning Rate</label>
+                    <input type="number" id="trainLR" class="input" value="0.0002" step="0.0001" min="0">
+                </div>
+
+                <div class="form-group" id="batchSizeGroup">
+                    <label>Batch Size</label>
+                    <input type="number" id="trainBatch" class="input" value="16" min="1" max="128">
+                </div>
+
+                <div class="form-group">
+                    <label>Patience (Early Stop)</label>
+                    <input type="number" id="trainPatience" class="input" value="7" min="1" max="50">
+                </div>
+
+                <!-- GNN-specific -->
+                <div class="form-group hidden" id="gnnTypeGroup">
+                    <label>GNN Type</label>
+                    <select id="gnnType" class="input">
+                        <option value="gcn">GCN</option>
+                        <option value="gat">GAT</option>
+                        <option value="sage">GraphSAGE</option>
+                    </select>
+                </div>
+
+                <!-- Multimodal-specific -->
+                <div class="form-group hidden" id="fusionTypeGroup">
+                    <label>Fusion Type</label>
+                    <select id="fusionType" class="input">
+                        <option value="cross_attention">Cross-Attention</option>
+                        <option value="gated">Gated Fusion</option>
+                    </select>
+                </div>
+                <div class="form-group hidden" id="fusionDimGroup">
+                    <label>Fusion Dim</label>
+                    <input type="number" id="fusionDim" class="input" value="256" min="32" max="512">
+                </div>
+
+                <button class="btn btn-accent btn-lg" onclick="startTraining()" id="trainBtn">
+                    🚀 Bắt đầu Training
+                </button>
+            </div>
+
+            <!-- Training Output -->
+            <div class="training-output">
+                <div class="output-header">
+                    <h3>📊 Training Output</h3>
+                    <div class="output-controls">
+                        <button class="btn btn-sm btn-danger hidden" id="stopTrainBtn" onclick="stopCurrentTask()">⏹
+                            Dừng</button>
+                    </div>
+                </div>
+                <div class="training-status hidden" id="trainingStatus">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                    <span class="progress-text" id="progressText">Đang chạy...</span>
+                </div>
+                <div class="log-container active" id="trainLog">
+                    <pre class="log-content">Chưa có training nào. Chọn model và nhấn "Bắt đầu Training".</pre>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════════ Results Section ═══════════════ -->
+    <section id="results" class="section">
+        <h2 class="section-title">📊 Kết quả Phase 3 Baseline</h2>
+        <p class="section-desc">So sánh hiệu suất các model — dữ liệu từ Phase 3 (1,354 samples, 6 classes)</p>
+
+        <div class="results-grid">
+            <div class="chart-card">
+                <h3>6-Class Macro F1-Score</h3>
+                <canvas id="chartF1" width="500" height="300"></canvas>
+            </div>
+            <div class="chart-card">
+                <h3>Binary Accuracy (%)</h3>
+                <canvas id="chartAcc" width="500" height="300"></canvas>
+            </div>
+        </div>
+
+        <div class="results-table-wrap">
+            <h3>📋 Bảng tổng hợp Phase 3</h3>
+            <table class="results-table">
+                <thead>
+                    <tr>
+                        <th>Model</th>
+                        <th>6-Class Acc</th>
+                        <th>6-Class F1</th>
+                        <th>Binary Acc</th>
+                        <th>Binary F1</th>
+                        <th>Ghi chú</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="highlight" style="background-color: rgba(99, 102, 241, 0.15);">
+                        <td>🧠 <strong>Multimodal GNN (Đề xuất)</strong></td>
+                        <td>27.2%</td>
+                        <td><strong>0.172</strong></td>
+                        <td>60.3%</td>
+                        <td>0.551</td>
+                        <td>Trung bình 5 seeds (Phase 4)</td>
+                    </tr>
+                    <tr class="highlight" style="background-color: rgba(99, 102, 241, 0.15);">
+                        <td>🧠 Multimodal GNN (Best BinAcc)</td>
+                        <td>23.9%</td>
+                        <td>0.140</td>
+                        <td><strong>66.4%</strong></td>
+                        <td>0.569</td>
+                        <td>Seed 42 (Tốt nhất phân loại nhị phân)</td>
+                    </tr>
+                    <tr>
+                        <td>🥈 Graph SAGE (Text+Graph)</td>
+                        <td>23.6%</td>
+                        <td><strong>0.190</strong></td>
+                        <td>61.8%</td>
+                        <td>0.590</td>
+                        <td>Baseline Phase 3 tốt nhất (F1)</td>
+                    </tr>
+                    <tr>
+                        <td>🥉 Graph GAT (Text+Graph)</td>
+                        <td>35.7%</td>
+                        <td>0.171</td>
+                        <td>63.9%</td>
+                        <td>0.498</td>
+                        <td>Baseline Phase 3 tốt nhất (BinAcc)</td>
+                    </tr>
+                    <tr>
+                        <td>📝 Text-Only (XLM-RoBERTa)</td>
+                        <td>26.4%</td>
+                        <td>0.129</td>
+                        <td>52.5%</td>
+                        <td>0.561</td>
+                        <td>Frozen Features</td>
+                    </tr>
+                    <tr>
+                        <td>🖼️ Image-Only (ResNet50)</td>
+                        <td>43.9%*</td>
+                        <td>0.102</td>
+                        <td>60.7%</td>
+                        <td>0.000</td>
+                        <td>Collapse (Chỉ predict TRUE)</td>
+                    </tr>
+                    <tr>
+                        <td>🔀 Simple Fusion (Text+Image)</td>
+                        <td>43.9%*</td>
+                        <td>0.102</td>
+                        <td>60.7%</td>
+                        <td>0.000</td>
+                        <td>Collapse (Chỉ predict TRUE)</td>
+                    </tr>
+                </tbody>
+            </table>
+            <p class="table-note">* Accuracy cao do dự đoán toàn bộ là class TRUE (dữ liệu mất cân bằng)</p>
+        </div>
+    </section>
+
+    <!-- ═══════════════ Run History Section ═══════════════ -->
+    <section id="history" class="section">
+        <h2 class="section-title">📜 Lịch sử chạy</h2>
+        <p class="section-desc">Tất cả các lần chạy crawler và training được lưu lại tự động</p>
+
+        <div class="history-controls">
+            <select id="historyFilter" class="input" onchange="loadRunHistory()">
+                <option value="all">Tất cả</option>
+                <option value="crawl">🕷️ Crawler</option>
+                <option value="enrich">💬 Enrich</option>
+                <option value="build_graphs">🔗 Build Graphs</option>
+                <option value="visualize">👁️ Visualize</option>
+                <option value="reddit_pipeline">🔄 Reddit Pipeline</option>
+                <option value="batch_pipeline">📦 Fakeddit Batch</option>
+                <option value="convert_ls">🏷️ LS Convert</option>
+                <option value="auto_label">🤖 Auto-Label</option>
+                <option value="train">🏋️ Training</option>
+            </select>
+            <button class="btn btn-secondary" onclick="loadRunHistory()">🔄 Refresh</button>
+        </div>
+
+        <div class="history-table-wrap">
+            <table class="history-table" id="historyTable">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Loại</th>
+                        <th>Trạng thái</th>
+                        <th>Bắt đầu</th>
+                        <th>Kết thúc</th>
+                        <th>Params</th>
+                        <th>Metrics</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody id="historyBody">
+                    <tr>
+                        <td colspan="8" class="empty-state">Đang tải...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- ═══════════════ Run Detail Modal ═══════════════ -->
+    <div class="modal-overlay hidden" id="runModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="modalTitle">Chi tiết Run</h3>
+                <button class="btn-icon-sm" onclick="closeModal()">✕</button>
+            </div>
+            <div class="modal-body" id="modalBody"></div>
+        </div>
+    </div>
+
+    <!-- ═══════════════ Footer ═══════════════ -->
+    <footer class="footer">
+        <div class="footer-content">
+            <p>🔍 Multimodal Fake News Detection — NCKH Project 2026</p>
+            <p class="footer-tech">XLM-RoBERTa · ResNet-50 · Cross-Attention · GraphSAGE · PyTorch</p>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
