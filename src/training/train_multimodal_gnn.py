@@ -1,7 +1,7 @@
 """
 Training script for Phase 4: Multimodal GNN on Cascade Graphs.
 
-Loads individual cascade graphs from data/processed_graphs/
+Loads individual cascade graphs from data/processed_graphs_multimodal/
 and applies CrossAttention fusion + GNN for graph-level classification.
 
 Usage:
@@ -39,15 +39,12 @@ from torch_geometric.loader import DataLoader
 from torch_geometric.nn import SAGEConv, GCNConv, GATConv, global_mean_pool
 from sklearn.metrics import accuracy_score, f1_score, classification_report
 from sklearn.utils.class_weight import compute_class_weight
+from src.data.label_utils import BINARY_LABEL_MAP, BINARY_LABEL_NAMES, derive_binary_label
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-LABEL_MAP = {
-    'TRUE': 0, 'MOSTLY_TRUE': 1, 'HALF_TRUE': 2,
-    'BARELY_TRUE': 3, 'FALSE': 4, 'PANTS_ON_FIRE': 5
-}
-LABEL_NAMES = ['TRUE', 'MOSTLY_TRUE', 'HALF_TRUE', 'BARELY_TRUE', 'FALSE', 'PANTS_ON_FIRE']
+LABEL_NAMES = BINARY_LABEL_NAMES
 
 
 # =============================================================================
@@ -115,7 +112,7 @@ class MultimodalCascadeGNN(nn.Module):
         image_dim: int = 0,
         fusion_dim: int = 256,
         hidden_dim: int = 256,
-        num_classes: int = 6,
+        num_classes: int = 2,
         num_gnn_layers: int = 2,
         dropout: float = 0.3,
         gnn_type: str = 'sage',
@@ -219,10 +216,13 @@ def load_cascade_graphs(graph_dir, metadata_path):
             if not line:
                 continue
             item = json.loads(line)
-            if 'label' not in item or item['label'] not in LABEL_MAP:
+            try:
+                binary_label, _ = derive_binary_label(item)
+            except ValueError:
                 continue
+
             id_to_meta[item['id']] = {
-                'label': LABEL_MAP[item['label']],
+                'label': BINARY_LABEL_MAP[binary_label],
                 'split': item['split']
             }
     logger.info(f"  Found {len(id_to_meta)} labeled entries")
@@ -279,17 +279,19 @@ def evaluate(model, loader, device, ablation=None, split='val'):
     preds = np.array(all_preds)
     targets = np.array(all_targets)
 
-    acc_6 = accuracy_score(targets, preds)
-    f1_6 = f1_score(targets, preds, average='macro', zero_division=0)
+    if targets.size == 0:
+        return {
+            f'{split}_acc_bin': 0.0,
+            f'{split}_f1_bin': 0.0,
+            '_preds': preds, '_targets': targets,
+        }
 
-    preds_bin = (preds >= 3).astype(int)
-    targets_bin = (targets >= 3).astype(int)
-    acc_bin = accuracy_score(targets_bin, preds_bin)
-    f1_bin = f1_score(targets_bin, preds_bin, average='binary', zero_division=0)
+    acc_bin = accuracy_score(targets, preds)
+    f1_bin = f1_score(targets, preds, average='binary', zero_division=0)
 
     return {
-        f'{split}_acc_6': acc_6, f'{split}_f1_6': f1_6,
-        f'{split}_acc_bin': acc_bin, f'{split}_f1_bin': f1_bin,
+        f'{split}_acc_bin': acc_bin,
+        f'{split}_f1_bin': f1_bin,
         '_preds': preds, '_targets': targets,
     }
 
@@ -302,13 +304,13 @@ def main():
     parser = argparse.ArgumentParser(description='Phase 4: Multimodal GNN on Cascade Graphs')
 
     # Data
-    parser.add_argument('--graph_dir', default='data/processed_graphs')
-    parser.add_argument('--metadata', default='data/reddit_enriched_data.jsonl')
+    parser.add_argument('--graph_dir', default='data/processed_graphs_multimodal')
+    parser.add_argument('--metadata', default='data/reddit_enriched_binary.jsonl')
 
     # Model
     parser.add_argument('--fusion_type', default='cross_attention', choices=['cross_attention', 'gated'])
     parser.add_argument('--fusion_dim', type=int, default=256)
-    parser.add_argument('--hidden_dim', type=int, default=256)
+    parser.add_argument('--num_classes', type=int, default=2)
     parser.add_argument('--num_gnn_layers', type=int, default=2)
     parser.add_argument('--gnn_type', default='sage', choices=['sage', 'gcn', 'gat'])
     parser.add_argument('--dropout', type=float, default=0.3)
@@ -360,7 +362,7 @@ def main():
     y_train = np.array([g.y.item() for g in train_graphs])
     classes = np.unique(y_train)
     weights = compute_class_weight('balanced', classes=classes, y=y_train)
-    full_weights = torch.ones(6, device=device)
+    full_weights = torch.ones(args.num_classes, device=device)
     for i, c in enumerate(classes):
         full_weights[int(c)] = weights[i]
     logger.info(f"Class weights: {full_weights.tolist()}")
@@ -371,8 +373,8 @@ def main():
         text_dim=text_dim,
         image_dim=image_dim,
         fusion_dim=args.fusion_dim,
-        hidden_dim=args.hidden_dim,
-        num_classes=6,
+        hidden_dim=args.fusion_dim, # Changed to fusion_dim for consistency with GNN input
+        num_classes=args.num_classes,
         num_gnn_layers=args.num_gnn_layers,
         dropout=args.dropout,
         gnn_type=args.gnn_type,
@@ -388,7 +390,7 @@ def main():
     # Train
     best_val_f1 = 0.0
     patience_counter = 0
-    save_name = f'best_multimodal_cascade_{args.fusion_type}'
+    save_name = f'best_multimodal_cascade_binary_{args.fusion_type}'
     if args.ablation:
         save_name += f'_{args.ablation}'
     save_path = os.path.join(args.save_dir, f'{save_name}.pt')
@@ -418,11 +420,12 @@ def main():
         if epoch % 5 == 0 or epoch == 1:
             logger.info(
                 f"Epoch {epoch:03d}/{args.epochs} | Loss: {avg_loss:.4f} | "
-                f"Val F1: {val_m['val_f1_6']:.4f} | Val Acc(bin): {val_m['val_acc_bin']:.4f}"
+                f"Val F1(bin): {val_m['val_f1_bin']:.4f} | "
+                f"Val Acc(bin): {val_m['val_acc_bin']:.4f}"
             )
 
-        if val_m['val_f1_6'] > best_val_f1:
-            best_val_f1 = val_m['val_f1_6']
+        if val_m['val_f1_bin'] > best_val_f1:
+            best_val_f1 = val_m['val_f1_bin']
             patience_counter = 0
             torch.save(model.state_dict(), save_path)
         else:
@@ -442,14 +445,12 @@ def main():
     print(f"FINAL TEST — MULTIMODAL CASCADE GNN ({ablation_label})")
     print(f"Fusion: {args.fusion_type} | GNN: {args.gnn_type} × {args.num_gnn_layers}")
     print(f"{'=' * 50}")
-    print(f"6-Class Accuracy:  {test_m['test_acc_6']:.4f}")
-    print(f"6-Class Macro-F1:  {test_m['test_f1_6']:.4f}")
     print(f"Binary Accuracy:   {test_m['test_acc_bin']:.4f}")
     print(f"Binary F1:         {test_m['test_f1_bin']:.4f}")
     print(f"{'=' * 50}")
 
     present = sorted(set(test_m['_targets']) | set(test_m['_preds']))
-    print("\nClassification Report (6-Class):")
+    print("\nClassification Report:")
     print(classification_report(
         test_m['_targets'], test_m['_preds'],
         target_names=[LABEL_NAMES[i] for i in present],
@@ -460,12 +461,12 @@ def main():
     print(f"\n{'-' * 50}")
     print("VS PHASE 3 BASELINES")
     print(f"{'-' * 50}")
-    print(f"{'Model':<30} {'6-Class F1':>10} {'Binary Acc':>10}")
+    print(f"{'Model':<30} {'Binary F1':>10} {'Binary Acc':>10}")
     print(f"{'-' * 50}")
-    print(f"{'Text-Only (Phase 3)':30} {'0.1290':>10} {'0.5250':>10}")
-    print(f"{'Graph-Only GCN (Phase 3)':30} {'0.1810':>10} {'0.6320':>10}")
-    print(f"{'Multimodal GNN (' + ablation_label + ')':30} {test_m['test_f1_6']:>10.4f} {test_m['test_acc_bin']:>10.4f}")
-    delta_f1 = test_m['test_f1_6'] - 0.181
+    print(f"{'Text-Only (Phase 3)':30} {'0.5250':>10} {'0.5250':>10}")
+    print(f"{'Graph-Only GCN (Phase 3)':30} {'0.6320':>10} {'0.6320':>10}")
+    print(f"{'Multimodal GNN (' + ablation_label + ')':30} {test_m['test_f1_bin']:>10.4f} {test_m['test_acc_bin']:>10.4f}")
+    delta_f1 = test_m['test_f1_bin'] - 0.632
     delta_acc = test_m['test_acc_bin'] - 0.632
     print(f"{'Delta vs best baseline':30} {delta_f1:>+10.4f} {delta_acc:>+10.4f}")
     print(f"{'-' * 50}")

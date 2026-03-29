@@ -122,4 +122,59 @@ print(f"Post ID: {data.post_id}")
 
 ---
 
-*Cập nhật lần cuối: 12/02/2026*
+## 🌐 Chạy Demo Website
+
+Sau khi đã có dữ liệu, graph và kết quả train/experiment, cả nhóm có thể mở web demo để theo dõi pipeline và xem kết quả trực quan.
+
+### Bước 4 - Sinh hình kết quả cho demo
+
+```bash
+python src/experiments/visualize_results.py --results results/paper_experiments/<ten_file_ket_qua>.json
+```
+
+Lệnh này sẽ tạo các file trong `results/paper_figures/`, gồm:
+
+- `binary_results_summary.md`
+- `binary_percentage_comparison.png`
+- `binary_accuracy_delta_vs_best_baseline.png`
+- `binary_f1_delta_vs_best_baseline.png`
+- `ablation_binary_delta_vs_full_model.png`
+- `ablation_binary_f1_delta_vs_full_model.png`
+
+### Bước 5 - Chạy demo website
+
+```bash
+cd demo-website
+python app.py
+```
+
+Mở trình duyệt tại:
+
+```text
+http://localhost:5000
+```
+
+### Demo website sẽ hiển thị gì?
+
+- trạng thái dữ liệu hiện tại
+- các bước pipeline và log khi chạy
+- lịch sử các lần train/crawl/enrich/build graph
+- biểu đồ `Binary Accuracy` và `Binary F1`
+- summary markdown và các hình kết quả trong `results/paper_figures/`
+
+### Các nút chính trên demo hiện đang gọi flow nào?
+
+- `Reddit Pipeline` -> `research_pipeline.py prepare-label`
+- `LS Export -> JSONL` -> `research_pipeline.py merge-labels`
+- `Enrich Data` -> `research_pipeline.py enrich`
+- `Build Graphs` -> `research_pipeline.py build-graphs --multimodal`
+- `Training` -> train trên metadata binary và graph binary hiện tại
+
+### Checklist trước khi mở demo
+
+- đã có `data/reddit_enriched_binary.jsonl` hoặc dữ liệu enrich tương ứng
+- đã có graph trong `data/processed_graphs/` hoặc `data/processed_graphs_multimodal/`
+- đã chạy `visualize_results.py` để sinh file trong `results/paper_figures/`
+- đang dùng đúng môi trường Python có Flask và các thư viện của project
+
+*Cập nhật lần cuối: 29/03/2026*

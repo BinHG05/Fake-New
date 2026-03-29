@@ -38,6 +38,7 @@ from src.data.text_image_dataset import (
     create_dataloaders,
     LABEL_MAP_6,
     LABEL_NAMES_6,
+    LABEL_NAMES_BINARY,
 )
 
 logging.basicConfig(
@@ -51,7 +52,7 @@ logger = logging.getLogger(__name__)
 # Helpers
 # ==============================================================
 
-def build_model(model_type: str, num_classes: int = 6) -> nn.Module:
+def build_model(model_type: str, num_classes: int = 2) -> nn.Module:
     """Instantiate the correct model based on --model_type."""
     if model_type == 'text':
         from src.models.baselines.text_only import TextOnlyModel
@@ -93,7 +94,7 @@ def forward_batch(model, batch, model_type: str, device: torch.device) -> torch.
 # ==============================================================
 
 @torch.no_grad()
-def evaluate(model, loader, model_type, device, split_name='val'):
+def evaluate(model, loader, model_type, device, split_name='val', label_mode='binary'):
     """Evaluate model on a DataLoader. Returns dict of metrics."""
     model.eval()
     all_preds, all_targets = [], []
@@ -128,6 +129,33 @@ def evaluate(model, loader, model_type, device, split_name='val'):
     }
 
 
+@torch.no_grad()
+def evaluate_binary(model, loader, model_type, device, split_name='val'):
+    """Evaluate a binary classifier on a DataLoader."""
+    model.eval()
+    all_preds, all_targets = [], []
+
+    for batch in loader:
+        logits = forward_batch(model, batch, model_type, device)
+        preds = logits.argmax(dim=-1).cpu().numpy()
+        targets = batch['label'].numpy()
+        all_preds.append(preds)
+        all_targets.append(targets)
+
+    all_preds = np.concatenate(all_preds)
+    all_targets = np.concatenate(all_targets)
+
+    acc_bin = accuracy_score(all_targets, all_preds)
+    f1_bin = f1_score(all_targets, all_preds, average='binary', zero_division=0)
+
+    return {
+        f'{split_name}_acc_bin': acc_bin,
+        f'{split_name}_f1_bin': f1_bin,
+        '_preds': all_preds,
+        '_targets': all_targets,
+    }
+
+
 # ==============================================================
 # Train
 # ==============================================================
@@ -138,6 +166,8 @@ def train():
                         help="Which baseline to train")
     parser.add_argument('--data_path', default=None,
                         help='Path to labeled_master.jsonl (default: auto-detect)')
+    parser.add_argument('--label_mode', default='binary', choices=['binary', '6class'],
+                        help='Training target mode')
     parser.add_argument('--epochs', type=int, default=20, help='Max epochs')
     parser.add_argument('--batch_size', type=int, default=16, help='Batch size')
     parser.add_argument('--lr', type=float, default=2e-4, help='Learning rate')
@@ -155,6 +185,7 @@ def train():
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     logger.info(f"Device: {device}")
     logger.info(f"Model type: {args.model_type}")
+    logger.info(f"Label mode: {args.label_mode}")
 
     # ---- Data ----
     ds_mode = get_dataset_mode(args.model_type)
@@ -163,6 +194,7 @@ def train():
     train_loader, val_loader, test_loader = create_dataloaders(
         data_path=args.data_path,
         mode=ds_mode,
+        label_mode=args.label_mode,
         batch_size=args.batch_size,
     )
 
@@ -176,14 +208,15 @@ def train():
 
     classes = np.unique(train_labels)
     weights = compute_class_weight(class_weight='balanced', classes=classes, y=train_labels)
-    full_weights = torch.ones(6, device=device)
+    num_classes = 2 if args.label_mode == 'binary' else 6
+    full_weights = torch.ones(num_classes, device=device)
     for i, c in enumerate(classes):
         full_weights[int(c)] = weights[i]
     logger.info(f"Class weights: {full_weights.tolist()}")
 
     # ---- Model ----
     logger.info("Building model ...")
-    model = build_model(args.model_type, num_classes=6).to(device)
+    model = build_model(args.model_type, num_classes=num_classes).to(device)
 
     trainable = sum(p.numel() for p in model.parameters() if p.requires_grad)
     total = sum(p.numel() for p in model.parameters())
@@ -200,7 +233,7 @@ def train():
     # ---- Training loop ----
     best_val_f1 = 0.0
     patience_counter = 0
-    save_path = os.path.join(args.save_dir, f'best_{args.model_type}_baseline.pt')
+    save_path = os.path.join(args.save_dir, f'best_{args.model_type}_baseline_{args.label_mode}.pt')
 
     logger.info("=" * 50)
     logger.info("Starting Training")
@@ -228,16 +261,26 @@ def train():
         elapsed = time.time() - t0
 
         # Evaluate on val
-        val_metrics = evaluate(model, val_loader, args.model_type, device, 'val')
-        current_f1 = val_metrics['val_f1_macro_6']
-
-        logger.info(
-            f"Epoch {epoch:02d}/{args.epochs} | "
-            f"Loss: {avg_loss:.4f} | "
-            f"Val F1(macro): {current_f1:.4f} | "
-            f"Val Acc(bin): {val_metrics['val_acc_bin']:.4f} | "
-            f"{elapsed:.1f}s"
-        )
+        if args.label_mode == 'binary':
+            val_metrics = evaluate_binary(model, val_loader, args.model_type, device, 'val')
+            current_f1 = val_metrics['val_f1_bin']
+            logger.info(
+                f"Epoch {epoch:02d}/{args.epochs} | "
+                f"Loss: {avg_loss:.4f} | "
+                f"Val F1(bin): {current_f1:.4f} | "
+                f"Val Acc(bin): {val_metrics['val_acc_bin']:.4f} | "
+                f"{elapsed:.1f}s"
+            )
+        else:
+            val_metrics = evaluate(model, val_loader, args.model_type, device, 'val', args.label_mode)
+            current_f1 = val_metrics['val_f1_macro_6']
+            logger.info(
+                f"Epoch {epoch:02d}/{args.epochs} | "
+                f"Loss: {avg_loss:.4f} | "
+                f"Val F1(macro): {current_f1:.4f} | "
+                f"Val Acc(bin): {val_metrics['val_acc_bin']:.4f} | "
+                f"{elapsed:.1f}s"
+            )
 
         # Early stopping
         if current_f1 > best_val_f1:
@@ -256,21 +299,31 @@ def train():
     logger.info("=" * 50)
     logger.info("Loading best model for final test ...")
     model.load_state_dict(torch.load(save_path, weights_only=True))
-    test_metrics = evaluate(model, test_loader, args.model_type, device, 'test')
+    if args.label_mode == 'binary':
+        test_metrics = evaluate_binary(model, test_loader, args.model_type, device, 'test')
+    else:
+        test_metrics = evaluate(model, test_loader, args.model_type, device, 'test', args.label_mode)
 
     print("\n" + "=" * 40)
     print(f"FINAL TEST RESULTS — {args.model_type.upper()} BASELINE")
     print("=" * 40)
-    print(f"6-Class Accuracy:  {test_metrics['test_acc_6']:.4f}")
-    print(f"6-Class Macro-F1:  {test_metrics['test_f1_macro_6']:.4f}")
-    print(f"Binary Accuracy:   {test_metrics['test_acc_bin']:.4f}")
-    print(f"Binary F1:         {test_metrics['test_f1_bin']:.4f}")
+    if args.label_mode == 'binary':
+        print(f"Binary Accuracy:   {test_metrics['test_acc_bin']:.4f}")
+        print(f"Binary F1:         {test_metrics['test_f1_bin']:.4f}")
+    else:
+        print(f"6-Class Accuracy:  {test_metrics['test_acc_6']:.4f}")
+        print(f"6-Class Macro-F1:  {test_metrics['test_f1_macro_6']:.4f}")
+        print(f"Binary Accuracy:   {test_metrics['test_acc_bin']:.4f}")
+        print(f"Binary F1:         {test_metrics['test_f1_bin']:.4f}")
     print("=" * 40)
 
     # Classification report
-    print(f"\nClassification Report (6-Class):")
+    print(f"\nClassification Report ({'Binary' if args.label_mode == 'binary' else '6-Class'}):")
     present_classes = sorted(set(test_metrics['_targets']) | set(test_metrics['_preds']))
-    present_names = [LABEL_NAMES_6[i] for i in present_classes]
+    if args.label_mode == 'binary':
+        present_names = [LABEL_NAMES_BINARY[i] for i in present_classes]
+    else:
+        present_names = [LABEL_NAMES_6[i] for i in present_classes]
     print(classification_report(
         test_metrics['_targets'],
         test_metrics['_preds'],

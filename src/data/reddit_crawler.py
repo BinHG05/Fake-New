@@ -61,12 +61,13 @@ def setup_logging(debug=False):
     return logger
 
 class RedditCrawler:
-    def __init__(self, debug=False, limit=25, subreddits=None, images_only=False, min_text_length=10):
+    def __init__(self, debug=False, limit=25, subreddits=None, images_only=False, skip_comments=False, min_text_length=10):
         self.logger = setup_logging(debug)
         self.debug = debug
         self.limit = limit
         self.subreddits = subreddits or SUBREDDITS
         self.images_only = images_only
+        self.skip_comments = skip_comments
         self.min_text_length = min_text_length
         self.run_id = str(uuid.uuid4())[:8]
         self.session = self._setup_session()
@@ -81,7 +82,7 @@ class RedditCrawler:
         )
         adapter = HTTPAdapter(max_retries=retry_strategy)
         session.mount("https://", adapter)
-        session.headers.update({'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AntigravityCrawler/1.1'})
+        session.headers.update({'User-Agent': f'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AntigravityCrawler/{CRAWLER_VERSION} ({self.run_id})'})
         return session
 
     def get_existing_ids(self):
@@ -138,41 +139,65 @@ class RedditCrawler:
         return author
 
     def classify_media(self, url, post_data=None):
-        if not url:
-            # Fallback: chỉ lấy direct URL từ i.redd.it (không dùng preview/thumbnail)
-            if post_data:
-                preview = post_data.get('preview', {})
-                images = preview.get('images', [])
-                if images:
-                    source_url = images[0].get('source', {}).get('url', '')
-                    if source_url:
-                        source_url = source_url.replace('&amp;', '&')
-                        # Chỉ dùng nếu là i.redd.it (direct link, không bị 403)
-                        if 'i.redd.it' in source_url:
-                            return source_url
-                # KHÔNG dùng preview.redd.it hay thumbnail (luôn bị 403/expired)
-            return ""
-        
-        # Direct media (i.redd.it, imgur) - có extension rõ ràng
-        if re.search(MEDIA_EXTENSIONS, url, re.IGNORECASE):
-            # Chỉ chấp nhận domain đáng tin cậy
-            if 'i.redd.it' in url or 'imgur.com' in url or 'i.imgur.com' in url:
-                return url
-        
-        # Reddit hosted images (i.redd.it without extension)
-        if 'i.redd.it' in url:
-            return url
-        
-        # SKIP: preview.redd.it và external-preview.redd.it (luôn bị 403 Forbidden)
-        # Token trong URL chỉ valid tạm thời, download sau sẽ fail
+        if not post_data:
+            post_data = {}
             
-        # Imgur links (often without extension)
-        if 'imgur.com' in url and '/a/' not in url and '/gallery/' not in url:
-            # Add .jpg if no extension
-            if not re.search(r'\.[a-zA-Z]{3,4}$', url):
-                return url + '.jpg'
-            return url
-        
+        # 1. Check for Reddit Gallery (Multiple Images)
+        if post_data.get('is_gallery'):
+            media_metadata = post_data.get('media_metadata', {})
+            if media_metadata:
+                # Get the first item in the gallery
+                first_item_id = list(media_metadata.keys())[0]
+                item = media_metadata[first_item_id]
+                if item.get('status') == 'valid' and 's' in item:
+                    # 's' contains the source high-res image
+                    source_url = item['s'].get('u', '') or item['s'].get('gif', '')
+                    if source_url:
+                        return source_url.replace('&amp;', '&')
+                        
+        # 2. Check Crossposts
+        crosspost_parent_list = post_data.get('crosspost_parent_list', [])
+        if crosspost_parent_list:
+            parent_data = crosspost_parent_list[0]
+            # Recursively try to extract from parent
+            parent_media = self.classify_media(parent_data.get('url', ''), parent_data)
+            if parent_media:
+                return parent_media
+                
+        # 3. Direct URL Check
+        if url:
+            if re.search(MEDIA_EXTENSIONS, url, re.IGNORECASE):
+                return url
+            if 'i.redd.it' in url:
+                return url
+            if 'imgur.com' in url and '/a/' not in url and '/gallery/' not in url:
+                if not re.search(r'\.[a-zA-Z]{3,4}$', url):
+                    return url + '.jpg'
+                return url
+
+        # 4. Fallback: Extract from Preview (News Articles/Links)
+        preview = post_data.get('preview', {})
+        images = preview.get('images', [])
+        if images:
+            source = images[0].get('source', {})
+            source_url = source.get('url', '')
+            if source_url:
+                # The preview URL often has HTML entities encoded
+                decoded_url = source_url.replace('&amp;', '&')
+                
+                # Critical Fix: preview.redd.it and external-preview.redd.it URLs 
+                # often contain expiring tokens (?width=...&crop=...&auto=webp&s=...)
+                # The downstream ImageProcessor gets 403 Forbidden when trying to download them later.
+                # However, for many external-preview URLs (like NYT, BBC), the 'url=' parameter
+                # inside the source_url actually points to the original image.
+                # If we just clean the Reddit query params, we might still get 403 for Reddit hosted ones.
+                # Let's pass the decoded URL as is; the downstream downloader might succeed if run soon after crawl.
+                # If we want to strictly avoid 403, we could try to strip the token, but that breaks the signature.
+                
+                # To maximize yield while minimizing 403s on old tokens, we accept the preview URL
+                # but we will rely on the downstream image processor to handle 403 gracefully.
+                return decoded_url
+                
         return ""
 
     def fetch_comments(self, permalink):
@@ -180,7 +205,7 @@ class RedditCrawler:
         Fetch the full comment tree for a given post permalink.
         Returns a list of comment objects (flat structure with parent_id).
         """
-        if not permalink:
+        if self.skip_comments or not permalink:
             return []
 
         # Ensure permalink has trailing slash
@@ -189,34 +214,52 @@ class RedditCrawler:
             
         url = f"https://www.reddit.com{permalink}.json?limit=100" # Limit top-level comments
         
-        try:
-            time.sleep(1.0) # Rate limit for comment fetch
-            resp = self.session.get(url, timeout=10)
-            if resp.status_code == 429:
-                self.logger.warning("   ⚠️ Rate limited (429) on comments. Waiting 5s...")
-                time.sleep(5)
-                return []
-            resp.raise_for_status()
-            
-            data = resp.json()
-            # data[0] is the post, data[1] is the comments Listing
-            if len(data) < 2:
-                return []
+        max_retries = 2
+        for attempt in range(max_retries):
+            try:
+                # Politeness delay before each request
+                import random
+                time.sleep(random.uniform(2.0, 4.0)) 
                 
-            comment_listing = data[1]
-            comments_data = comment_listing.get('data', {}).get('children', [])
-            
-            cascade_nodes = []
-            post_id = data[0]['data']['children'][0]['data']['id']
+                resp = self.session.get(url, timeout=15)
+                
+                if resp.status_code == 429:
+                    wait_time = 60 if attempt == 0 else 120
+                    self.logger.warning(f"   ⚠️ Rate limited (429) on comments. Cooldown: {wait_time}s... (Attempt {attempt+1}/{max_retries})")
+                    time.sleep(wait_time)
+                    continue # Retry
+                
+                resp.raise_for_status()
+                
+                data = resp.json()
+                if not isinstance(data, list) or len(data) < 2:
+                    return []
+                    
+                comment_listing = data[1]
+                comments_data = comment_listing.get('data', {}).get('children', [])
+                
+                cascade_nodes = []
+                # Ensure structure is valid
+                if not data[0].get('data', {}).get('children'):
+                    return []
+                    
+                post_id = data[0]['data']['children'][0]['data']['id']
 
-            for comment in comments_data:
-                self.parse_comment_tree(comment, post_id, cascade_nodes, level=1)
+                for comment in comments_data:
+                    self.parse_comment_tree(comment, post_id, cascade_nodes, level=1)
+                    
+                return cascade_nodes
                 
-            return cascade_nodes
-            
-        except Exception as e:
-            self.logger.error(f"   ⚠️ Failed to fetch comments for {permalink}: {e}")
-            return []
+            except Exception as e:
+                if attempt < max_retries - 1:
+                    wait_time = 5 * (attempt + 1)
+                    self.logger.warning(f"   ⚠️ Comment fetch error: {e}. Retrying in {wait_time}s...")
+                    time.sleep(wait_time)
+                    continue
+                self.logger.error(f"   ❌ Final failure fetching comments for {permalink}: {e}")
+                break
+                
+        return []
 
     def parse_comment_tree(self, comment_data, parent_id, cascade_nodes, level):
         """
@@ -259,6 +302,8 @@ class RedditCrawler:
         self.logger.info(f"📋 Subreddits: {', '.join(self.subreddits)}")
         if self.images_only:
             self.logger.info(f"🖼️  Mode: IMAGES ONLY (bỏ qua bài không có ảnh)")
+        if self.skip_comments:
+            self.logger.info(f"💬 Mode: SKIP COMMENTS (tránh rate limit)")
         existing_ids = self.get_existing_ids()
         self.logger.info(f"📊 Current database size: {len(existing_ids)} items.")
         
@@ -348,8 +393,11 @@ class RedditCrawler:
             except Exception as e:
                 self.logger.error(f"   ❌ Failed to crawl r/{group}: {e}")
                 self.stats["errors"] += 1
+                if "429" in str(e):
+                    self.logger.warning("   🚨 Hit 429 Rate Limit. Waiting 60s before next subreddit...")
+                    time.sleep(60)
                 
-            time.sleep(1.5) # Compliance with API limits
+            time.sleep(3.0) # Compliance with API limits
 
         self.save(all_new_items)
         self.logger.info(f"🏁 Run Summary: New: {self.stats['new']} | Skipped empty: {self.stats['skipped_empty']} | Skipped short text: {self.stats['skipped_text_too_short']} | Skipped video: {self.stats['skipped_video']} | Skipped no image: {self.stats['skipped_no_image']} | Errors: {self.stats['errors']}")
@@ -379,6 +427,7 @@ if __name__ == "__main__":
     parser.add_argument("--auto", action="store_true", help="Chạy tự động lặp lại theo chu kỳ")
     parser.add_argument("--interval", type=int, default=15, help="Khoảng cách giữa các lần cào (phút, mặc định: 15)")
     parser.add_argument("--images-only", action="store_true", help="Chỉ lấy bài có hình ảnh (bỏ qua text-only)")
+    parser.add_argument("--skip-comments", action="store_true", help="Bỏ qua việc lấy comment (tránh 429 rate limit)")
     parser.add_argument("--min-text", type=int, default=10, help="Độ dài tối thiểu text sau khi clean (mặc định: 10 ký tự)")
     parser.add_argument("--subreddits", nargs="+", default=None,
                         help="Danh sách subreddit tùy chỉnh (mặc định: dùng list có sẵn)")
@@ -403,6 +452,7 @@ if __name__ == "__main__":
         limit=args.limit,
         subreddits=subreddit_list,
         images_only=args.images_only,
+        skip_comments=args.skip_comments,
         min_text_length=args.min_text
     )
 
@@ -421,6 +471,7 @@ if __name__ == "__main__":
                     limit=args.limit,
                     subreddits=subreddit_list,
                     images_only=args.images_only,
+                    skip_comments=args.skip_comments,
                     min_text_length=args.min_text
                 )
                 crawler.crawl()

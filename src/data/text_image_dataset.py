@@ -13,6 +13,7 @@ from typing import Optional, Tuple, Dict, List
 
 import torch
 from torch.utils.data import Dataset, DataLoader
+from src.data.label_utils import BINARY_LABEL_MAP, BINARY_LABEL_NAMES, derive_binary_label
 
 logger = logging.getLogger(__name__)
 
@@ -31,12 +32,14 @@ LABEL_MAP_6 = {
 # Binary mapping (for binary evaluation):
 # 0,1,2 → 0 (Real-ish)  |  3,4,5 → 1 (Fake-ish)
 LABEL_NAMES_6 = list(LABEL_MAP_6.keys())
+LABEL_NAMES_BINARY = BINARY_LABEL_NAMES
 
 # ============================================================
 # Đường dẫn mặc định
 # ============================================================
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
-DEFAULT_DATA_PATH = PROJECT_ROOT / 'data' / '03_clean' / 'Fakeddit' / 'labeled_master.jsonl'
+DEFAULT_DATA_PATH = PROJECT_ROOT / 'data' / '03_clean' / 'Fakeddit' / 'labeled_master_binary.jsonl'
+LEGACY_DATA_PATH = PROJECT_ROOT / 'data' / '03_clean' / 'Fakeddit' / 'labeled_master.jsonl'
 DEFAULT_IMAGE_ROOT = PROJECT_ROOT / 'data'
 
 
@@ -64,6 +67,7 @@ class FakedditTextImageDataset(Dataset):
         data_path: str = None,
         split: str = 'train',
         mode: str = 'text',       # 'text', 'image', 'both'
+        label_mode: str = 'binary',
         tokenizer_name: str = 'xlm-roberta-base',
         max_length: int = 128,
         image_size: int = 224,
@@ -71,14 +75,19 @@ class FakedditTextImageDataset(Dataset):
     ):
         assert split in ('train', 'val', 'test'), f"split phải là 'train', 'val', hoặc 'test', nhận được '{split}'"
         assert mode in ('text', 'image', 'both'), f"mode phải là 'text', 'image', hoặc 'both', nhận được '{mode}'"
+        assert label_mode in ('binary', '6class'), f"Invalid label_mode: {label_mode}"
 
         self.split = split
         self.mode = mode
+        self.label_mode = label_mode
         self.max_length = max_length
         self.image_size = image_size
 
         # Paths
-        self.data_path = Path(data_path) if data_path else DEFAULT_DATA_PATH
+        if data_path:
+            self.data_path = Path(data_path)
+        else:
+            self.data_path = DEFAULT_DATA_PATH if DEFAULT_DATA_PATH.exists() else LEGACY_DATA_PATH
         self.image_root = Path(image_root) if image_root else DEFAULT_IMAGE_ROOT
 
         # Load data
@@ -111,9 +120,20 @@ class FakedditTextImageDataset(Dataset):
                     continue
 
                 # Lọc bản ghi có label hợp lệ
-                label_str = rec.get('label', '')
-                if label_str not in LABEL_MAP_6:
-                    continue
+                if self.label_mode == 'binary':
+                    label_str = rec.get('label_binary', '')
+                    if label_str not in BINARY_LABEL_MAP:
+                        try:
+                            label_str, _ = derive_binary_label(rec)
+                            rec['label_binary'] = label_str
+                        except ValueError:
+                            continue
+                    if label_str not in BINARY_LABEL_MAP:
+                        continue
+                else:
+                    label_str = rec.get('label', '')
+                    if label_str not in LABEL_MAP_6:
+                        continue
 
                 records.append(rec)
 
@@ -229,7 +249,10 @@ class FakedditTextImageDataset(Dataset):
         record = self.records[idx]
 
         # Label
-        label = LABEL_MAP_6[record['label']]
+        if self.label_mode == 'binary':
+            label = BINARY_LABEL_MAP[record['label_binary']]
+        else:
+            label = LABEL_MAP_6[record['label']]
         item = {'label': torch.tensor(label, dtype=torch.long)}
 
         # Text
@@ -251,6 +274,7 @@ class FakedditTextImageDataset(Dataset):
 def create_dataloaders(
     data_path: str = None,
     mode: str = 'text',
+    label_mode: str = 'binary',
     batch_size: int = 16,
     tokenizer_name: str = 'xlm-roberta-base',
     max_length: int = 128,
@@ -269,6 +293,7 @@ def create_dataloaders(
             data_path=data_path,
             split=split,
             mode=mode,
+            label_mode=label_mode,
             tokenizer_name=tokenizer_name,
             max_length=max_length,
             image_size=image_size,

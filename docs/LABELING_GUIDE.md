@@ -59,17 +59,13 @@ docker-compose up -d
     <Header value="3. Nhãn Chi tiết (Ground Truth – Chọn 1)"/>
 
     <Choices
-      name="label_fine"
+      name="label_binary"
       toName="post_text"
       choice="single"
       required="true">
 
-      <Choice value="TRUE"/>
-      <Choice value="MOSTLY_TRUE"/>
-      <Choice value="HALF_TRUE"/>
-      <Choice value="BARELY_TRUE"/>
-      <Choice value="FALSE"/>
-      <Choice value="PANTS_ON_FIRE"/>
+      <Choice value="REAL"/>
+      <Choice value="FAKE"/>
 
     </Choices>
   </View>
@@ -111,7 +107,7 @@ docker-compose up -d
 
 1. Click vào từng task
 2. Đọc văn bản, xem ảnh
-3. Chọn nhãn: **Real / Fake / Satire / Misleading**
+3. Chọn nhãn: **REAL** hoặc **FAKE**
 4. Click **"Submit"**
 
 ---
@@ -127,8 +123,10 @@ docker-compose up -d
 ## Bước 7: Merge (Leader làm)
 
 ```powershell
-python src/utils/convert_ls_export_to_jsonl.py --input "data/03_clean/Fakeddit/batch_800_1000/Fakeddit/export_batch_800_1000.json" --output "data/03_clean/Fakeddit/labeled_master.jsonl" --append
+python src/utils/research_pipeline.py merge-labels --input "data/03_clean/Reddit/reddit_run_001/export_reddit_run_001.json"
 ```
+
+> Luu y: neu `id` trong file export da ton tai trong `labeled_master.jsonl` hoac bi lap ngay trong chinh file export, record do se bi bo qua va khong duoc merge vao file tong.
 
 ---
 

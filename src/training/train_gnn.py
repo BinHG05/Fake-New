@@ -1,12 +1,11 @@
 """
-Training script for MultiModal Fake News GNN on Cascade Graphs.
+Training script for Cascade GNN on graph-level fake news classification.
 
 Features:
 - Loads individual cascade graphs from data/processed_graphs/
-- Maps labels from data/04_graph/merged_data.jsonl
-- Graph-level classification (each cascade = 1 sample)
-- 6-class classification with binary evaluation monitoring
-- Early Stopping based on Validation Macro-F1
+- Trains with 6-class labels
+- Reports both 6-class metrics and derived binary metrics
+- Early stopping based on validation macro-F1 (6-class)
 """
 
 import os
@@ -31,19 +30,13 @@ import logging
 import numpy as np
 from typing import Dict, List, Tuple
 
+from src.data.label_utils import BINARY_LABEL_MAP, BINARY_LABEL_NAMES, derive_binary_label
+
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
 # ─── Label Mapping ───
-LABEL_MAP = {
-    'TRUE': 0,
-    'MOSTLY_TRUE': 1,
-    'HALF_TRUE': 2,
-    'BARELY_TRUE': 3,
-    'FALSE': 4,
-    'PANTS_ON_FIRE': 5
-}
-LABEL_NAMES = ['TRUE', 'MOSTLY_TRUE', 'HALF_TRUE', 'BARELY_TRUE', 'FALSE', 'PANTS_ON_FIRE']
+LABEL_NAMES = BINARY_LABEL_NAMES
 
 
 # ─── GNN Model for Graph-Level Classification ───
@@ -52,7 +45,7 @@ class CascadeGNN(nn.Module):
     GNN for graph-level classification on cascade graphs.
     Uses message passing layers + global pooling → MLP classifier.
     """
-    def __init__(self, input_dim: int, hidden_dim: int = 256, num_classes: int = 6,
+    def __init__(self, input_dim: int, hidden_dim: int = 256, num_classes: int = 2,
                  dropout: float = 0.3, gnn_type: str = 'gcn', num_layers: int = 2):
         super().__init__()
         self.gnn_type = gnn_type
@@ -139,8 +132,13 @@ def load_cascade_graphs(graph_dir: str, metadata_path: str) -> Tuple[List[Data],
             if not line:
                 continue
             item = json.loads(line)
+            try:
+                binary_label, _ = derive_binary_label(item)
+            except ValueError:
+                continue
+
             id_to_meta[item['id']] = {
-                'label': LABEL_MAP[item['label']],
+                'label': BINARY_LABEL_MAP[binary_label],
                 'split': item['split']
             }
     logger.info(f"  Found {len(id_to_meta)} labeled entries")
@@ -209,36 +207,37 @@ def evaluate(model, loader, device, split_name="val") -> Dict[str, float]:
     
     all_preds = np.array(all_preds)
     all_targets = np.array(all_targets)
-    
-    # 6-class metrics
-    acc_6 = accuracy_score(all_targets, all_preds)
-    f1_macro_6 = f1_score(all_targets, all_preds, average='macro', zero_division=0)
-    
-    # Binary metrics: 0,1,2 → 0 (True-ish), 3,4,5 → 1 (Fake-ish)
-    preds_bin = (all_preds >= 3).astype(int)
-    targets_bin = (all_targets >= 3).astype(int)
-    
-    acc_bin = accuracy_score(targets_bin, preds_bin)
-    f1_bin = f1_score(targets_bin, preds_bin, average='binary', zero_division=0)
-    
+
+    if all_targets.size == 0:
+        return {
+            f'{split_name}_acc_bin': 0.0,
+            f'{split_name}_f1_bin': 0.0,
+            '_preds': all_preds,
+            '_targets': all_targets,
+        }
+
+    acc_bin = accuracy_score(all_targets, all_preds)
+    f1_bin = f1_score(all_targets, all_preds, average='binary', zero_division=0)
+
     return {
-        f'{split_name}_acc_6': acc_6,
-        f'{split_name}_f1_macro_6': f1_macro_6,
         f'{split_name}_acc_bin': acc_bin,
-        f'{split_name}_f1_bin': f1_bin
+        f'{split_name}_f1_bin': f1_bin,
+        '_preds': all_preds,
+        '_targets': all_targets,
     }
 
 
 def train():
     parser = argparse.ArgumentParser(description='Train GNN on Cascade Graphs')
     parser.add_argument('--graph_dir', default='data/processed_graphs', help='Directory with individual .pt graph files')
-    parser.add_argument('--metadata', default='data/reddit_enriched_data.jsonl', help='Path to reddit_enriched_data.jsonl')
+    parser.add_argument('--metadata', default='data/reddit_enriched_binary.jsonl', help='Path to binary metadata JSONL')
     parser.add_argument('--epochs', type=int, default=100, help='Max number of epochs')
     parser.add_argument('--lr', type=float, default=0.001, help='Learning rate')
     parser.add_argument('--weight_decay', type=float, default=5e-4, help='Weight decay')
     parser.add_argument('--hidden_dim', type=int, default=256, help='Hidden dimension')
     parser.add_argument('--dropout', type=float, default=0.3, help='Dropout rate')
     parser.add_argument('--gnn_type', choices=['gat', 'sage', 'gcn'], default='gat', help='GNN layer type')
+    parser.add_argument('--num_classes', type=int, default=2, help='Number of classes')
     parser.add_argument('--num_layers', type=int, default=2, help='Number of GNN layers')
     parser.add_argument('--batch_size', type=int, default=32, help='Batch size for DataLoader')
     parser.add_argument('--patience', type=int, default=15, help='Patience for early stopping')
@@ -270,7 +269,7 @@ def train():
     model = CascadeGNN(
         input_dim=input_dim,
         hidden_dim=args.hidden_dim,
-        num_classes=6,
+        num_classes=args.num_classes,
         dropout=args.dropout,
         gnn_type=args.gnn_type,
         num_layers=args.num_layers
@@ -285,9 +284,9 @@ def train():
     
     classes = np.unique(y_train)
     weights = compute_class_weight(class_weight='balanced', classes=classes, y=y_train)
-    full_weights = torch.ones(6).to(device)
+    full_weights = torch.ones(args.num_classes).to(device)
     for i, c in enumerate(classes):
-        full_weights[c] = weights[i]
+        full_weights[int(c)] = weights[i]
     
     logger.info(f"Class weights: {full_weights.tolist()}")
     
@@ -322,20 +321,20 @@ def train():
         
         # Evaluate
         val_metrics = evaluate(model, val_loader, device, "val")
-        current_val_f1 = val_metrics['val_f1_macro_6']
+        current_val_f1 = val_metrics['val_f1_bin']
         
         if epoch % 5 == 0 or epoch == 1:
             logger.info(
                 f"Epoch {epoch:03d} | Loss: {avg_loss:.4f} | "
-                f"Val F1 (Macro): {current_val_f1:.4f} | "
-                f"Val Acc (Bin): {val_metrics['val_acc_bin']:.4f}"
+                f"Val F1(bin): {val_metrics['val_f1_bin']:.4f} | "
+                f"Val Acc(bin): {val_metrics['val_acc_bin']:.4f}"
             )
             
-        # Early Stopping based on Val Macro-F1
-        if current_val_f1 > best_val_f1:
-            best_val_f1 = current_val_f1
+        # Early Stopping based on Val F1
+        if val_metrics['val_f1_bin'] > best_val_f1:
+            best_val_f1 = val_metrics['val_f1_bin']
             patience_counter = 0
-            save_path = os.path.join(args.save_dir, f'best_cascade_gnn_{args.gnn_type}.pt')
+            save_path = os.path.join(args.save_dir, f'best_cascade_gnn_binary_{args.gnn_type}.pt')
             torch.save(model.state_dict(), save_path)
         else:
             patience_counter += 1
@@ -346,39 +345,29 @@ def train():
             
     # ─── Final Test ───
     logger.info("Training complete. Loading best model for testing...")
-    best_path = os.path.join(args.save_dir, f'best_cascade_gnn_{args.gnn_type}.pt')
+    best_path = os.path.join(args.save_dir, f'best_cascade_gnn_binary_{args.gnn_type}.pt')
     if os.path.exists(best_path):
-        model.load_state_dict(torch.load(best_path, weights_only=False))
+        model.load_state_dict(torch.load(best_path, weights_only=True))
     
     test_metrics = evaluate(model, test_loader, device, "test")
     
-    print("\n" + "="*30)
-    print("FINAL TEST RESULTS")
-    print("="*30)
-    print(f"GNN Type:          {args.gnn_type.upper()}")
-    print(f"6-Class Accuracy:  {test_metrics['test_acc_6']:.4f}")
-    print(f"6-Class Macro-F1:  {test_metrics['test_f1_macro_6']:.4f}")
+    print("\n" + "=" * 40)
+    print(f"FINAL TEST RESULTS - {args.gnn_type.upper()} GNN")
+    print("=" * 40)
     print(f"Binary Accuracy:   {test_metrics['test_acc_bin']:.4f}")
     print(f"Binary F1:         {test_metrics['test_f1_bin']:.4f}")
-    print("="*30)
-    
-    # Detailed report
-    model.eval()
-    all_preds, all_targets = [], []
-    with torch.no_grad():
-        for batch in test_loader:
-            batch = batch.to(device)
-            logits = model(batch.x, batch.edge_index, batch.batch)
-            all_preds.extend(logits.argmax(dim=-1).cpu().numpy())
-            all_targets.extend(batch.y.cpu().numpy())
-    
-    all_preds = np.array(all_preds)
-    all_targets = np.array(all_targets)
-    
-    print("\nClassification Report (6-Class):")
-    present_classes = sorted(list(set(all_targets) | set(all_preds)))
+    print("=" * 40)
+
+    print("\nClassification Report (Binary):")
+    present_classes = sorted(set(test_metrics['_targets']) | set(test_metrics['_preds']))
     present_names = [LABEL_NAMES[i] for i in present_classes]
-    print(classification_report(all_targets, all_preds, target_names=present_names, labels=present_classes))
+    print(classification_report(
+        test_metrics['_targets'],
+        test_metrics['_preds'],
+        target_names=present_names,
+        labels=present_classes,
+        zero_division=0,
+    ))
 
 
 if __name__ == "__main__":

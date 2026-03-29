@@ -12,6 +12,7 @@ import time
 import subprocess
 import threading
 import re
+from pathlib import Path
 from datetime import datetime
 from flask import Flask, request, jsonify, Response, send_from_directory
 
@@ -28,6 +29,7 @@ app = Flask(__name__, static_folder=".", static_url_path="")
 # ── In-memory task tracking ──
 active_tasks = {}          # task_id → {"process": Popen, "log": [], "status": str}
 log_subscribers = {}       # task_id → [queue, ...]
+RESULTS_DIR = os.path.join(PROJECT_ROOT, "results", "paper_figures")
 
 
 # =============================================================
@@ -127,6 +129,86 @@ def launch_script(task_type: str, script_path: str, args: list = None, params: d
     return task_id
 
 
+def _read_text_if_exists(path: str) -> str:
+    if not os.path.exists(path):
+        return ""
+    with open(path, "r", encoding="utf-8") as f:
+        return f.read()
+
+
+def _parse_binary_summary(summary_text: str) -> dict:
+    parsed = {
+        "best_baseline": {},
+        "full_model": {},
+        "delta_vs_baseline": {},
+        "ablation": [],
+    }
+    if not summary_text:
+        return parsed
+
+    m = re.search(
+        r"Best baseline:\s*\*\*(.+?)\*\*[\s\S]*?Binary Accuracy:\s*\*\*([\d.]+)%\*\*[\s\S]*?Binary F1:\s*\*\*([\d.]+)%\*\*",
+        summary_text,
+    )
+    if m:
+        parsed["best_baseline"] = {
+            "name": m.group(1).strip(),
+            "binary_accuracy_pct": float(m.group(2)),
+            "binary_f1_pct": float(m.group(3)),
+        }
+
+    m = re.search(
+        r"Full model:\s*\*\*([\d.]+)%\*\*\s*Binary Accuracy,\s*\*\*([\d.]+)%\*\*\s*Binary F1",
+        summary_text,
+    )
+    if m:
+        parsed["full_model"] = {
+            "binary_accuracy_pct": float(m.group(1)),
+            "binary_f1_pct": float(m.group(2)),
+        }
+
+    m = re.search(
+        r"Delta vs best baseline:[\s\S]*?Accuracy:\s*\*\*([+\-]?[\d.]+)\s*pp\*\*[\s\S]*?F1:\s*\*\*([+\-]?[\d.]+)\s*pp\*\*",
+        summary_text,
+    )
+    if m:
+        parsed["delta_vs_baseline"] = {
+            "accuracy_pp": float(m.group(1)),
+            "f1_pp": float(m.group(2)),
+        }
+
+    for line in summary_text.splitlines():
+        m = re.match(r"\s*-\s+(.+?):\s+([\d.]+)%\s+\(([+\-]?[\d.]+)\s+pp\)", line)
+        if m:
+            parsed["ablation"].append({
+                "name": m.group(1).strip(),
+                "binary_accuracy_pct": float(m.group(2)),
+                "delta_pp": float(m.group(3)),
+            })
+
+    return parsed
+
+
+def _collect_result_figures() -> list:
+    figure_names = [
+        "binary_percentage_comparison.png",
+        "binary_accuracy_delta_vs_best_baseline.png",
+        "binary_f1_delta_vs_best_baseline.png",
+        "ablation_binary_delta_vs_full_model.png",
+        "ablation_binary_f1_delta_vs_full_model.png",
+    ]
+    figures = []
+    for name in figure_names:
+        path = os.path.join(RESULTS_DIR, name)
+        if os.path.exists(path):
+            figures.append({
+                "name": name,
+                "title": Path(name).stem.replace("_", " ").title(),
+                "url": f"/api/results/figures/{name}",
+            })
+    return figures
+
+
 # =============================================================
 # Static files
 # =============================================================
@@ -162,17 +244,29 @@ def start_crawl():
 
 @app.route("/api/enrich/start", methods=["POST"])
 def start_enrich():
-    """Start crawler_enrich.py to fetch comment trees."""
-    script = os.path.join(PROJECT_ROOT, "src", "data", "crawler_enrich.py")
-    task_id = launch_script("enrich", script, [], {})
+    """Run Step 4 of the unified research pipeline."""
+    data = request.json or {}
+    script = os.path.join(PROJECT_ROOT, "src", "utils", "research_pipeline.py")
+    args = ["enrich"]
+    if data.get("limit") is not None:
+        args.extend(["--limit", str(data["limit"])])
+    if data.get("delay") is not None:
+        args.extend(["--delay", str(data["delay"])])
+    task_id = launch_script("enrich", script, args, data)
     return jsonify({"task_id": task_id, "status": "started"})
 
 
 @app.route("/api/build-graphs/start", methods=["POST"])
 def start_build_graphs():
-    """Start build_final_graphs.py to create .pt graph files."""
-    script = os.path.join(PROJECT_ROOT, "src", "utils", "build_final_graphs.py")
-    task_id = launch_script("build_graphs", script, [], {})
+    """Run Step 5 of the unified research pipeline."""
+    data = request.json or {}
+    script = os.path.join(PROJECT_ROOT, "src", "utils", "research_pipeline.py")
+    args = ["build-graphs", "--multimodal"]
+    if data.get("force"):
+        args.append("--force")
+    if data.get("limit") is not None:
+        args.extend(["--limit", str(data["limit"])])
+    task_id = launch_script("build_graphs", script, args, data)
     return jsonify({"task_id": task_id, "status": "started"})
 
 
@@ -198,13 +292,13 @@ def start_reddit_pipeline():
     """Start reddit_pipeline.py — 4-step processing: Image → Text → Validate → LS."""
     data = request.json or {}
     mode = data.get("mode", "auto")  # 'auto' or 'manual'
-    script = os.path.join(PROJECT_ROOT, "src", "utils", "reddit_pipeline.py")
+    script = os.path.join(PROJECT_ROOT, "src", "utils", "research_pipeline.py")
 
-    args = []
+    args = ["prepare-label"]
     if mode == "manual":
         start = data.get("start", 0)
         count = data.get("count", 50)
-        args = ["--start", str(start), "--count", str(count)]
+        args.extend(["--start", str(start), "--count", str(count)])
         params = {"mode": "manual", "start": start, "count": count}
     else:
         params = {"mode": "auto"}
@@ -243,20 +337,17 @@ def start_merge_splits():
 
 @app.route("/api/convert-ls/start", methods=["POST"])
 def start_convert_ls():
-    """Convert Label Studio JSON export to JSONL."""
+    """Merge Label Studio export and refresh binary master."""
     data = request.json or {}
     input_file = data.get("input", "")
-    merge_master = data.get("merge_master", False)
-    script = os.path.join(PROJECT_ROOT, "src", "utils", "convert_ls_export_to_jsonl.py")
+    script = os.path.join(PROJECT_ROOT, "src", "utils", "research_pipeline.py")
 
     if not input_file:
         return jsonify({"error": "input file path required"}), 400
 
-    args = ["--input", input_file]
-    if merge_master:
-        args.append("--merge-master")
+    args = ["merge-labels", "--input", input_file]
 
-    params = {"input": input_file, "merge_master": merge_master}
+    params = {"input": input_file, "refresh_binary": True}
     task_id = launch_script("convert_ls", script, args, params)
     return jsonify({"task_id": task_id, "status": "started"})
 
@@ -344,35 +435,41 @@ def start_training():
 
     # Route to correct script
     if model_type in ("text", "image", "fusion"):
-        script = os.path.join(PROJECT_ROOT, "src", "training", "train_baseline.py")
+        script = os.path.join(PROJECT_ROOT, "src", "utils", "research_pipeline.py")
+        model_map = {
+            "text": "baseline_text",
+            "image": "baseline_image",
+            "fusion": "baseline_fusion",
+        }
         args = [
-            "--model_type", model_type,
+            "train",
+            "--model", model_map[model_type],
             "--epochs", str(epochs),
-            "--lr", str(lr),
             "--batch_size", str(batch_size),
-            "--patience", str(patience),
         ]
         task_type = f"train_{model_type}"
 
     elif model_type == "gnn":
-        script = os.path.join(PROJECT_ROOT, "src", "training", "train_gnn.py")
-        gnn_type = data.get("gnn_type", "gcn")
+        script = os.path.join(PROJECT_ROOT, "src", "utils", "research_pipeline.py")
         args = [
+            "train",
+            "--model", "gnn",
             "--epochs", str(epochs),
-            "--gnn_type", gnn_type,
+            "--batch_size", str(batch_size),
+            "--metadata", "data/reddit_enriched_binary.jsonl",
+            "--graph_dir", "data/processed_graphs",
         ]
         task_type = "train_gnn"
 
     elif model_type == "multimodal":
-        script = os.path.join(PROJECT_ROOT, "src", "training", "train_multimodal_gnn.py")
-        fusion_type = data.get("fusion_type", "cross_attention")
-        fusion_dim = data.get("fusion_dim", 256)
+        script = os.path.join(PROJECT_ROOT, "src", "utils", "research_pipeline.py")
         args = [
+            "train",
+            "--model", "multimodal_gnn",
             "--epochs", str(epochs),
-            "--lr", str(lr),
-            "--fusion_type", fusion_type,
-            "--fusion_dim", str(fusion_dim),
-            "--patience", str(patience),
+            "--batch_size", str(batch_size),
+            "--metadata", "data/reddit_enriched_binary.jsonl",
+            "--graph_dir", "data/processed_graphs_multimodal",
         ]
         task_type = "train_multimodal"
 
@@ -556,6 +653,23 @@ def get_best_metrics():
     })
 
 
+@app.route("/api/results/overview")
+def get_results_overview():
+    summary_path = os.path.join(RESULTS_DIR, "binary_results_summary.md")
+    summary_text = _read_text_if_exists(summary_path)
+    return jsonify({
+        "summary_exists": bool(summary_text),
+        "summary_markdown": summary_text,
+        "summary": _parse_binary_summary(summary_text),
+        "figures": _collect_result_figures(),
+    })
+
+
+@app.route("/api/results/figures/<path:filename>")
+def get_result_figure(filename):
+    return send_from_directory(RESULTS_DIR, filename)
+
+
 @app.route("/api/runs/<run_id>", methods=["DELETE"])
 def delete_run(run_id):
     run_history.delete_run(run_id)
@@ -580,7 +694,9 @@ def data_stats():
         stats["raw_reddit_count"] = 0
 
     # Enriched data
-    enriched_file = os.path.join(PROJECT_ROOT, "data", "reddit_enriched_data.jsonl")
+    enriched_file = os.path.join(PROJECT_ROOT, "data", "reddit_enriched_binary.jsonl")
+    if not os.path.exists(enriched_file):
+        enriched_file = os.path.join(PROJECT_ROOT, "data", "reddit_enriched_data.jsonl")
     if os.path.exists(enriched_file):
         with open(enriched_file, "r", encoding="utf-8") as f:
             stats["enriched_count"] = sum(1 for _ in f)
@@ -588,7 +704,9 @@ def data_stats():
         stats["enriched_count"] = 0
 
     # Processed graphs
-    graph_dir = os.path.join(PROJECT_ROOT, "data", "processed_graphs")
+    graph_dir = os.path.join(PROJECT_ROOT, "data", "processed_graphs_multimodal")
+    if not os.path.isdir(graph_dir):
+        graph_dir = os.path.join(PROJECT_ROOT, "data", "processed_graphs")
     if os.path.isdir(graph_dir):
         stats["graph_count"] = len([f for f in os.listdir(graph_dir) if f.endswith(".pt")])
     else:

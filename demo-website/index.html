@@ -96,7 +96,7 @@
                 <div class="arch-node classifier">
                     <div class="arch-icon">🎯</div>
                     <div class="arch-label">Classifier</div>
-                    <div class="arch-dim">6 classes</div>
+                    <div class="arch-dim">2 classes</div>
                 </div>
             </div>
             <div class="arch-flow" style="margin-top: 0.5rem;">
@@ -107,6 +107,20 @@
                 </div>
                 <div class="arch-arrow">↗</div>
                 <div class="arch-note">Image → K, V</div>
+            </div>
+        </div>
+
+        <div class="results-table-wrap">
+            <h3>ðŸ“‹ Tá»•ng há»£p káº¿t quáº£ tá»± Ä‘á»™ng</h3>
+            <div id="heroResultsSummaryText" class="results-summary-text">ChÆ°a cÃ³ `binary_results_summary.md`. HÃ£y
+                cháº¡y `python src/experiments/visualize_results.py --results &lt;file.json&gt;` sau khi cÃ³ káº¿t quáº£
+                train.</div>
+        </div>
+
+        <div class="results-table-wrap">
+            <h3>ðŸ–¼ï¸ Experiment Figures</h3>
+            <div id="heroResultsFigureGrid" class="results-figure-grid">
+                <div class="empty-state">ChÆ°a cÃ³ hÃ¬nh káº¿t quáº£.</div>
             </div>
         </div>
     </section>
@@ -473,9 +487,28 @@
         <h2 class="section-title">📊 Kết quả Phase 3 Baseline</h2>
         <p class="section-desc">So sánh hiệu suất các model — dữ liệu từ Phase 3 (1,354 samples, 6 classes)</p>
 
+        <div class="hero-stats results-summary-cards" id="resultsSummaryCards">
+            <div class="stat-card">
+                <div class="stat-value" id="bestBaselineAcc">â€”</div>
+                <div class="stat-label">Best Baseline Acc</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="bestBaselineF1">â€”</div>
+                <div class="stat-label">Best Baseline F1</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="fullModelAcc">â€”</div>
+                <div class="stat-label">Full Model Acc</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="deltaAcc">â€”</div>
+                <div class="stat-label">Delta Vs Baseline</div>
+            </div>
+        </div>
+
         <div class="results-grid">
             <div class="chart-card">
-                <h3>6-Class Macro F1-Score</h3>
+                <h3>Binary F1 Comparison (%)</h3>
                 <canvas id="chartF1" width="500" height="300"></canvas>
             </div>
             <div class="chart-card">
@@ -561,6 +594,21 @@
     </section>
 
     <!-- ═══════════════ Run History Section ═══════════════ -->
+    <div class="results-table-wrap">
+        <h3>ðŸ“‹ Tá»•ng há»£p káº¿t quáº£ tá»± Ä‘á»™ng</h3>
+        <div id="resultsSummaryText" class="results-summary-text">ChÆ°a cÃ³ `binary_results_summary.md`. HÃ£y cháº¡y
+            `python src/experiments/visualize_results.py --results &lt;file.json&gt;` sau khi cÃ³ káº¿t quáº£ train.
+        </div>
+    </div>
+
+    <div class="results-table-wrap">
+        <h3>ðŸ–¼ï¸ Experiment Figures</h3>
+        <div id="resultsFigureGrid" class="results-figure-grid">
+            <div class="empty-state">ChÆ°a cÃ³ hÃ¬nh káº¿t quáº£.</div>
+        </div>
+    </div>
+    </section>
+
     <section id="history" class="section">
         <h2 class="section-title">📜 Lịch sử chạy</h2>
         <p class="section-desc">Tất cả các lần chạy crawler và training được lưu lại tự động</p>

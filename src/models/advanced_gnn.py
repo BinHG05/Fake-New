@@ -35,7 +35,7 @@ class MultimodalGraphNet(nn.Module):
         image_dim: int = 2048,
         fusion_dim: int = 256,
         hidden_dim: int = 256,
-        num_classes: int = 6,
+        num_classes: int = 2,
         num_gnn_layers: int = 2,
         dropout: float = 0.3,
         fusion_type: str = 'cross_attention',  # 'cross_attention' or 'gated'
@@ -187,7 +187,7 @@ class PrecomputedMultimodalGNN(nn.Module):
         image_dim: int = 512,
         fusion_dim: int = 256,
         hidden_dim: int = 256,
-        num_classes: int = 6,
+        num_classes: int = 2,
         num_gnn_layers: int = 2,
         dropout: float = 0.3,
         fusion_type: str = 'cross_attention',

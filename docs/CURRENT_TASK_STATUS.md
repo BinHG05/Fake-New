@@ -36,4 +36,4 @@
 - [ ] **Batch 200-400 Processing**
     - [x] Batch extraction & Image/Text processing
     - [x] Label Studio Setup & Labeling ✅
-    - [ ] Export and Merge (`merge_labeled_batch_200.bat`)
+    - [ ] Export and Merge (`python src/utils/research_pipeline.py merge-labels --input <export.json>`)

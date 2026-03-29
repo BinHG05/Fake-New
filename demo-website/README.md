@@ -58,7 +58,7 @@ Project/
 │   ├── styles.css
 │   └── run_history.py
 └── src/                                  ← Source code pipeline
-```
+``` 
 
 ### Bước 4: Chạy Web Demo
 
@@ -123,3 +123,32 @@ app.run(debug=True, host='0.0.0.0', port=5000)
 ```
 
 Sau đó thành viên cùng mạng WiFi truy cập bằng IP máy chủ: `http://<IP-máy-bạn>:5000`
+
+---
+
+## 📊 Kết nối với Binary Results Dashboard
+
+Demo website hiện đã đọc trực tiếp các artifact trong `results/paper_figures/`. Để phần **Results** trên web hiển thị đúng Binary Accuracy / Binary F1 và các biểu đồ tăng giảm giữa các công nghệ xử lý, chạy thêm bước này sau khi có file kết quả experiment:
+
+```bash
+python src/experiments/visualize_results.py --results results/paper_experiments/<ten_file_ket_qua>.json
+```
+
+Khi đó web sẽ tự đọc:
+
+- `results/paper_figures/binary_results_summary.md`
+- `results/paper_figures/binary_percentage_comparison.png`
+- `results/paper_figures/binary_accuracy_delta_vs_best_baseline.png`
+- `results/paper_figures/binary_f1_delta_vs_best_baseline.png`
+- `results/paper_figures/ablation_binary_delta_vs_full_model.png`
+- `results/paper_figures/ablation_binary_f1_delta_vs_full_model.png`
+
+Nếu chưa sinh các file này, dashboard vẫn mở bình thường nhưng phần kết quả sẽ không có summary/hình mới.
+
+Ngoài ra, các nút pipeline chính trên web hiện đã được nối sang flow mới:
+
+- `Reddit Pipeline` -> chuẩn bị batch Reddit cho Label Studio
+- `LS Export -> JSONL` -> merge export và refresh file binary
+- `Enrich Data` -> enrich comment tree và refresh `reddit_enriched_binary.jsonl`
+- `Build Graphs` -> build graph text + multimodal
+- `Training` -> train trên metadata binary hiện tại

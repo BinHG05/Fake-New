@@ -1,4 +1,4 @@
-/* ═══════════════════════════════════════════════
+﻿/* ═══════════════════════════════════════════════
    Fake News Detection Dashboard — JavaScript
    ═══════════════════════════════════════════════ */
 
@@ -146,6 +146,7 @@ function streamLog(taskId, logContainerId, onDone = null) {
             loadDataStats();
             loadRunHistory();
             renderCharts();
+            loadResultsOverview();
             if (onDone) onDone(data);
         }
     };
@@ -474,39 +475,78 @@ async function renderCharts() {
         const data = await api('/api/metrics/best');
         const colors = ['#818cf8', '#34d399', '#f87171', '#fbbf24', '#a78bfa'];
 
-        drawBarChart('chartF1', data.labels, data.f1Values, colors, 0.25);
-        drawBarChart('chartAcc', data.labels, data.accValues, colors, 100);
-
-        // Update Table
-        // 0: Text-Only
-        document.getElementById('textAcc6').textContent = data.accValues[0] ? data.accValues[0].toFixed(1) + '%' : '—';
-        document.getElementById('textF16').textContent = data.f1Values[0] ? data.f1Values[0].toFixed(3) : '—';
-        document.getElementById('textAccBin').textContent = data.binAccValues[0] ? data.binAccValues[0].toFixed(1) + '%' : '—';
-        document.getElementById('textF1Bin').textContent = data.binF1Values[0] ? data.binF1Values[0].toFixed(3) : '—';
-
-        // 1: Graph SAGE
-        document.getElementById('graphAcc6').textContent = data.accValues[1] ? data.accValues[1].toFixed(1) + '%' : '—';
-        document.getElementById('graphF16').textContent = data.f1Values[1] ? data.f1Values[1].toFixed(3) : '—';
-        document.getElementById('graphAccBin').textContent = data.binAccValues[1] ? data.binAccValues[1].toFixed(1) + '%' : '—';
-        document.getElementById('graphF1Bin').textContent = data.binF1Values[1] ? data.binF1Values[1].toFixed(3) : '—';
-
-        // 2: Image-Only
-        document.getElementById('imageAcc6').textContent = data.accValues[2] ? data.accValues[2].toFixed(1) + '%*' : '—';
-        document.getElementById('imageF16').textContent = data.f1Values[2] ? data.f1Values[2].toFixed(3) : '—';
-        document.getElementById('imageAccBin').textContent = data.binAccValues[2] ? data.binAccValues[2].toFixed(1) + '%' : '—';
-        document.getElementById('imageF1Bin').textContent = data.binF1Values[2] ? data.binF1Values[2].toFixed(3) : '—';
-
-        // 3: Simple Fusion
-        document.getElementById('fusionAcc6').textContent = data.accValues[3] ? data.accValues[3].toFixed(1) + '%*' : '—';
-        document.getElementById('fusionF16').textContent = data.f1Values[3] ? data.f1Values[3].toFixed(3) : '—';
-        document.getElementById('fusionAccBin').textContent = data.binAccValues[3] ? data.binAccValues[3].toFixed(1) + '%' : '—';
-        document.getElementById('fusionF1Bin').textContent = data.binF1Values[3] ? data.binF1Values[3].toFixed(3) : '—';
-
-        // Note: The new table layout doesn't use these IDs anymore since we hardcoded 
-        // the Multimodal GNN results and phase 3 baselines in HTML for better aesthetics,
-        // but keeping this data extraction intact ensures the charts render properly.
+        drawBarChart('chartF1', data.labels, (data.binF1Values || []).map(v => (v || 0) * 100), colors, 100);
+        drawBarChart('chartAcc', data.labels, data.binAccValues, colors, 100);
     } catch (e) {
         console.warn('Could not load chart metrics:', e);
+    }
+}
+
+function formatPct(value) {
+    if (value === undefined || value === null || Number.isNaN(value)) return '-';
+    return `${Number(value).toFixed(2)}%`;
+}
+
+function formatPp(value) {
+    if (value === undefined || value === null || Number.isNaN(value)) return '-';
+    return `${value >= 0 ? '+' : ''}${Number(value).toFixed(2)} pp`;
+}
+
+function renderSummaryMarkdown(markdown) {
+    if (!markdown) return 'Chưa có summary markdown.';
+    return escapeHtml(markdown)
+        .replace(/^# (.+)$/gm, '<h4>$1</h4>')
+        .replace(/^\- (.+)$/gm, '<div class="summary-line">• $1</div>')
+        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\n/g, '<br>');
+}
+
+function renderResultFigures(figures) {
+    const grid = document.getElementById('resultsFigureGrid');
+    if (!grid) return;
+
+    if (!figures || figures.length === 0) {
+        grid.innerHTML = '<div class="empty-state">Chưa có hình kết quả.</div>';
+        return;
+    }
+
+    grid.innerHTML = figures.map(fig => `
+        <a class="result-figure-card" href="${fig.url}" target="_blank" rel="noopener noreferrer">
+            <img src="${fig.url}" alt="${fig.title}" loading="lazy">
+            <div class="result-figure-meta">
+                <div class="result-figure-title">${fig.title}</div>
+                <div class="result-figure-link">Mở hình gốc</div>
+            </div>
+        </a>
+    `).join('');
+}
+
+async function loadResultsOverview() {
+    try {
+        const data = await api('/api/results/overview');
+        const summary = data.summary || {};
+        const best = summary.best_baseline || {};
+        const full = summary.full_model || {};
+        const delta = summary.delta_vs_baseline || {};
+
+        document.getElementById('bestBaselineAcc').textContent = formatPct(best.binary_accuracy_pct);
+        document.getElementById('bestBaselineF1').textContent = formatPct(best.binary_f1_pct);
+        document.getElementById('fullModelAcc').textContent = formatPct(full.binary_accuracy_pct);
+        document.getElementById('deltaAcc').textContent = formatPp(delta.accuracy_pp);
+
+        const summaryBox = document.getElementById('resultsSummaryText');
+        if (summaryBox) {
+            summaryBox.innerHTML = renderSummaryMarkdown(data.summary_markdown || '');
+        }
+
+        const legacyWrap = document.querySelector('#results .results-table');
+        if (legacyWrap && data.summary_exists) {
+            legacyWrap.closest('.results-table-wrap').style.display = 'none';
+        }
+
+        renderResultFigures(data.figures || []);
+    } catch (e) {
+        console.warn('Could not load experiment results:', e);
     }
 }
 
@@ -667,9 +707,15 @@ document.getElementById('runModal')?.addEventListener('click', function (e) {
 // ════════════════════════════════════════════════
 
 window.addEventListener('DOMContentLoaded', () => {
+    const mergeCheckbox = document.getElementById('lsMergeMaster');
+    if (mergeCheckbox) {
+        mergeCheckbox.checked = true;
+        mergeCheckbox.disabled = true;
+    }
     loadDataStats();
     loadRunHistory();
     renderCharts();
+    loadResultsOverview();
     loadLSExports();
     loadAutoLabelFiles();
 });
