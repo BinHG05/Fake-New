@@ -50,8 +50,9 @@ docker-compose up -d
     value="$image_info.processed_path"
     zoom="true"
     zoomControl="true"
-    max-width="100%"
-    max-height="600px"
+    max-width="800px"
+    max-height="800px"
+    style="image-rendering: pixelated;"  
   />
 
   <!-- 3. Nhãn chi tiết -->

@@ -27,6 +27,7 @@
         </div>
         <div class="nav-links">
             <a href="#hero" class="nav-link active">Tổng quan</a>
+            <a href="#auto-pipeline" class="nav-link">🤖 Auto</a>
             <a href="#pipeline" class="nav-link">Pipeline</a>
             <a href="#processing" class="nav-link">Xử lý</a>
             <a href="#training" class="nav-link">Training</a>
@@ -125,9 +126,77 @@
         </div>
     </section>
 
+    <!-- ═══════════════ Full Auto Pipeline Section ═══════════════ -->
+    <section id="auto-pipeline" class="section">
+        <h2 class="section-title">🤖 Full Auto Pipeline</h2>
+        <p class="section-desc">Chạy toàn bộ quy trình thu thập và chuẩn bị dữ liệu: <strong>Crawl → Auto-Label (Groq LLM) → Enrich → Build Graph</strong> — sẵn sàng để tự train</p>
+
+        <div class="auto-pipeline-card">
+            <!-- Status Flow Indicator -->
+            <div class="pipeline-flow-indicator" id="fullPipelineFlow">
+                <div class="flow-step" id="flow-crawl">📡 Crawl</div>
+                <div class="flow-arrow">→</div>
+                <div class="flow-step" id="flow-label">🤖 Auto-Label</div>
+                <div class="flow-arrow">→</div>
+                <div class="flow-step" id="flow-enrich">💬 Enrich</div>
+                <div class="flow-arrow">→</div>
+                <div class="flow-step" id="flow-graph">🔗 Graph</div>
+            </div>
+
+            <!-- Config Grid -->
+            <div class="auto-pipeline-config">
+                <div class="config-group">
+                    <label>📡 Số bài Crawl</label>
+                    <input type="number" id="apCrawlLimit" value="50" min="10" max="500" class="input">
+                </div>
+                <div class="config-group">
+                    <label>🤖 LLM Engine</label>
+                    <select id="apLlm" class="input">
+                        <option value="groq" selected>⚡ Groq (Llama4 Vision)</option>
+                        <option value="clip">🖼️ CLIP (Local)</option>
+                        <option value="text">📝 Text-only (BART)</option>
+                    </select>
+                </div>
+                <div class="config-group">
+                    <label>📊 Confidence Ngưỡng</label>
+                    <input type="number" id="apConfidence" value="0.85" min="0.5" max="1.0" step="0.05" class="input">
+                </div>
+                <div class="config-group" style="justify-content: center;">
+                    <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer;" title="Nếu độ tin cậy < Ngưỡng, sẽ tạo file riêng để bạn duyệt thủ công trên Label Studio">
+                        <input type="checkbox" id="apHumanReview" checked> 👤 Cần Human Review (Mức thấp)
+                    </label>
+                </div>
+                <div class="config-group" style="justify-content: center;">
+                    <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer;">
+                        <input type="checkbox" id="apImagesOnly" checked> Chỉ bài có ảnh
+                    </label>
+                </div>
+            </div>
+
+            <div style="display:flex; gap:1rem; margin-top:1rem; align-items:center; flex-wrap:wrap;">
+                <button class="btn btn-accent btn-lg" id="fullPipelineBtn" onclick="startFullPipeline()"
+                    style="flex:1; min-width:200px;">
+                    🚀 Chạy Full Auto Pipeline
+                </button>
+                <button class="btn btn-danger btn-sm hidden" id="stopFullPipelineBtn" onclick="stopCurrentTask()">
+                    ⏹ Dừng
+                </button>
+                <span id="fullPipelineStatus" style="color:var(--text-secondary); font-size:0.85rem;"></span>
+            </div>
+
+            <div class="log-container hidden" id="fullPipelineLog" style="margin-top:1rem;">
+                <div class="log-header">
+                    <span>📋 Live Output</span>
+                    <button class="btn-icon-sm" onclick="clearLog('fullPipelineLog')">✕</button>
+                </div>
+                <pre class="log-content" style="max-height:400px;"></pre>
+            </div>
+        </div>
+    </section>
+
     <!-- ═══════════════ Data Pipeline Section ═══════════════ -->
     <section id="pipeline" class="section">
-        <h2 class="section-title">🕷️ Data Pipeline</h2>
+        <h2 class="section-title">🕷️ Data Pipeline (Thủ công)</h2>
         <p class="section-desc">Cào dữ liệu từ Reddit, làm giàu với comment tree, xây dựng đồ thị, và trực quan hóa</p>
 
         <div class="pipeline-grid">
@@ -404,11 +473,11 @@
                 <div class="form-group">
                     <label>Model Type</label>
                     <select id="modelType" class="input" onchange="updateTrainingForm()">
-                        <option value="text">📝 Text-Only (XLM-RoBERTa)</option>
-                        <option value="image">🖼️ Image-Only (ResNet-50)</option>
-                        <option value="fusion">🔀 Simple Fusion (Text + Image)</option>
-                        <option value="gnn">🔗 Graph GNN (Cascade)</option>
-                        <option value="multimodal">🧠 Multimodal GNN (Phase 4)</option>
+                        <option value="text">📝 Text-Only (Binary/XLM-R)</option>
+                        <option value="image">🖼️ Image-Only (Binary/ResNet-50)</option>
+                        <option value="fusion">🔀 Simple Fusion (Binary/Text+Image)</option>
+                        <option value="gnn">🔗 Graph GNN (Binary/Cascade)</option>
+                        <option value="multimodal">🧠 Multimodal GNN (Binary/Phase 4)</option>
                     </select>
                 </div>
 
@@ -455,9 +524,14 @@
                     <input type="number" id="fusionDim" class="input" value="256" min="32" max="512">
                 </div>
 
-                <button class="btn btn-accent btn-lg" onclick="startTraining()" id="trainBtn">
-                    🚀 Bắt đầu Training
-                </button>
+                <div style="display:flex; gap:0.5rem; flex-wrap:wrap; margin-top:1rem;">
+                    <button class="btn btn-accent btn-lg" onclick="startTraining()" id="trainBtn" style="flex:1;">
+                        🚀 Chạy Theo Cấu Hình
+                    </button>
+                    <button class="btn btn-primary btn-lg" onclick="startTrainAll()" id="trainAllBtn" style="flex:1;" title="Chạy tuần tự: Baseline Text, Image, Fusion, GNN, Multimodal GNN">
+                        🏆 Train Tất Cả Models
+                    </button>
+                </div>
             </div>
 
             <!-- Training Output -->
@@ -484,8 +558,8 @@
 
     <!-- ═══════════════ Results Section ═══════════════ -->
     <section id="results" class="section">
-        <h2 class="section-title">📊 Kết quả Phase 3 Baseline</h2>
-        <p class="section-desc">So sánh hiệu suất các model — dữ liệu từ Phase 3 (1,354 samples, 6 classes)</p>
+        <h2 class="section-title">📊 Kết quả Train (Binary)</h2>
+        <p class="section-desc">So sánh hiệu suất các model — dữ liệu Binary (REAL/FAKE)</p>
 
         <div class="hero-stats results-summary-cards" id="resultsSummaryCards">
             <div class="stat-card">
@@ -518,7 +592,7 @@
         </div>
 
         <div class="results-table-wrap">
-            <h3>📋 Bảng tổng hợp Phase 3</h3>
+            <h3>📋 Bảng tổng hợp thử nghiệm thủ công</h3>
             <table class="results-table">
                 <thead>
                     <tr>
@@ -650,6 +724,7 @@
                 </tbody>
             </table>
         </div>
+        <div id="historyPagination" class="pagination" style="display: flex; justify-content: center; gap: 8px; margin-top: 1rem;"></div>
     </section>
 
     <!-- ═══════════════ Run Detail Modal ═══════════════ -->

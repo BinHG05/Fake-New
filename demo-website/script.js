@@ -1,4 +1,4 @@
-﻿/* ═══════════════════════════════════════════════
+/* ═══════════════════════════════════════════════
    Fake News Detection Dashboard — JavaScript
    ═══════════════════════════════════════════════ */
 
@@ -168,6 +168,124 @@ function clearLog(logId) {
 }
 
 
+
+// ════════════════════════════════════════════════
+// Full Auto Pipeline
+// ════════════════════════════════════════════════
+
+const FLOW_STEPS = {
+    'Step 1: Crawl':       'flow-crawl',
+    'Step 2:':             'flow-label',
+    'Step 2.5:':           'flow-label',
+    'Auto-Label':          'flow-label',
+    'Step 4':              'flow-enrich',
+    'Enrich':              'flow-enrich',
+    'Step 5':              'flow-graph',
+    'Build':               'flow-graph',
+};
+
+function updateFlowStep(logLine) {
+    for (const [keyword, stepId] of Object.entries(FLOW_STEPS)) {
+        if (logLine.includes(keyword)) {
+            document.querySelectorAll('.flow-step').forEach(el => {
+                if (!el.classList.contains('done')) el.classList.remove('active');
+            });
+            const activeStep = document.getElementById(stepId);
+            if (activeStep && !activeStep.classList.contains('done')) {
+                activeStep.classList.add('active');
+            }
+            break;
+        }
+    }
+    if (logLine.includes('[DONE]') || logLine.includes('COMPLETED')) {
+        document.querySelectorAll('.flow-step').forEach(el => {
+            el.classList.remove('active');
+            el.classList.add('done');
+        });
+    }
+}
+
+async function startFullPipeline() {
+    const crawlLimit   = parseInt(document.getElementById('apCrawlLimit').value) || 50;
+    const llm          = document.getElementById('apLlm').value;
+    const confidence   = parseFloat(document.getElementById('apConfidence').value) || 0.85;
+    const imagesOnly   = document.getElementById('apImagesOnly').checked;
+    const humanReview  = document.getElementById('apHumanReview').checked;
+
+    // Reset flow steps
+    document.querySelectorAll('.flow-step').forEach(el => {
+        el.classList.remove('active', 'done');
+    });
+
+    const btn = document.getElementById('fullPipelineBtn');
+    const stopBtn = document.getElementById('stopFullPipelineBtn');
+    const statusEl = document.getElementById('fullPipelineStatus');
+    btn.disabled = true;
+    stopBtn.classList.remove('hidden');
+    statusEl.textContent = '⏳ Đang chạy tự động thu thập và chuẩn bị dữ liệu...';
+    setNavStatus('🤖 Dữ liệu đang được gom tự động...', true);
+
+    const res = await api('/api/full-pipeline/start', 'POST', {
+        crawl_limit: crawlLimit,
+        llm,
+        confidence_threshold: confidence,
+        images_only: imagesOnly,
+        require_human_review: humanReview,
+    });
+
+    if (!res.task_id) {
+        statusEl.textContent = '❌ Lỗi khởi động pipeline';
+        btn.disabled = false;
+        stopBtn.classList.add('hidden');
+        return;
+    }
+
+    // Stream log with flow-step tracking
+    const container = document.getElementById('fullPipelineLog');
+    container.classList.remove('hidden');
+    container.classList.add('active');
+    const pre = container.querySelector('.log-content');
+    pre.textContent = '';
+
+    currentTaskId = res.task_id;
+    if (currentEventSource) currentEventSource.close();
+
+    const es = new EventSource(`/api/stream/${res.task_id}`);
+    currentEventSource = es;
+
+    es.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        pre.textContent += data.line + '\n';
+        pre.scrollTop = pre.scrollHeight;
+        updateFlowStep(data.line);
+
+        if (data.done) {
+            es.close();
+            currentEventSource = null;
+            currentTaskId = null;
+            btn.disabled = false;
+            stopBtn.classList.add('hidden');
+            statusEl.textContent = data.line.includes('failed') ? '❌ Pipeline thất bại' : '✅ Pipeline hoàn thành!';
+            setNavStatus('Sẵn sàng', false);
+            loadDataStats();
+            loadRunHistory();
+            renderCharts();
+            loadResultsOverview();
+        }
+    };
+
+    es.onerror = () => {
+        es.close();
+        currentEventSource = null;
+        currentTaskId = null;
+        btn.disabled = false;
+        stopBtn.classList.add('hidden');
+        statusEl.textContent = '⚠️ Kết nối bị ngắt';
+        setNavStatus('Sẵn sàng', false);
+    };
+}
+
+
 // ════════════════════════════════════════════════
 // Data Pipeline Actions
 // ════════════════════════════════════════════════
@@ -332,6 +450,48 @@ function updateTrainingForm() {
     } else {
         lrInput.value = '0.0002';
     }
+}
+
+async function startTrainAll() {
+    const epochs = parseInt(document.getElementById('trainEpochs').value) || 20;
+    const batch_size = parseInt(document.getElementById('trainBatch').value) || 16;
+    
+    document.getElementById('trainBtn').disabled = true;
+    document.getElementById('trainAllBtn').disabled = true;
+    document.getElementById('stopTrainBtn').classList.remove('hidden');
+    
+    // Check if trainingStatus element exists, if not just show a nav status
+    const statusEl = document.getElementById('trainingStatus');
+    if(statusEl) {
+        statusEl.classList.remove('hidden');
+        document.getElementById('progressText').textContent = `Training ALL Models...`;
+        document.getElementById('progressFill').style.width = '10%';
+    }
+
+    setNavStatus(`Training All Models...`, true);
+    const res = await api('/api/train-all/start', 'POST', { epochs, batch_size });
+
+    let progress = 10;
+    const progressInterval = setInterval(() => {
+        if (progress < 90) {
+            progress += Math.random() * 2;
+            if(document.getElementById('progressFill')) document.getElementById('progressFill').style.width = progress + '%';
+        }
+    }, 2000);
+
+    streamLog(res.task_id, 'trainLog', () => {
+        clearInterval(progressInterval);
+        if(document.getElementById('progressFill')) {
+            document.getElementById('progressFill').style.width = '100%';
+            document.getElementById('progressText').textContent = 'Hoàn thành tất cả!';
+        }
+        document.getElementById('trainBtn').disabled = false;
+        document.getElementById('trainAllBtn').disabled = false;
+        document.getElementById('stopTrainBtn').classList.add('hidden');
+        setTimeout(() => {
+            if(statusEl) statusEl.classList.add('hidden');
+        }, 3000);
+    });
 }
 
 async function startTraining() {
@@ -544,6 +704,24 @@ async function loadResultsOverview() {
             legacyWrap.closest('.results-table-wrap').style.display = 'none';
         }
 
+        const evalBox = document.getElementById('evaluationSection');
+        if (evalBox && data.summary_exists) {
+            let evalHtml = `<ul style="margin:0; padding-left:20px; line-height: 1.6;">`;
+            if (delta.accuracy_pp > 0) {
+                evalHtml += `<li><strong>Tín hiệu tích cực:</strong> Multimodal GNN đã cải thiện ${delta.accuracy_pp} điểm phần trăm Accuracy so với ${best.name || 'Baseline'}, cho thấy kết hợp đa phương thức và GNN đóng vai trò quan trọng.</li>`;
+            } else {
+                evalHtml += `<li><strong>Đánh giá:</strong> Multimodal GNN hiện chưa vượt trội hơn ${best.name || 'Baseline'} (lệch ${delta.accuracy_pp || 0} pp). Nguyên nhân có thể do Overfitting hoặc Fusion Module chưa tận dụng hết thông tin.</li>`;
+            }
+            
+            if (full.binary_f1_pct < 65) {
+                evalHtml += `<li><strong>Hướng cải thiện:</strong> F1-Score nhị phân (ở mức ${full.binary_f1_pct}%) tương đối thấp, cho thấy mô hình dễ bị nhầm lẫn giữa FAKE và REAL (thường thiên về REAL do mất cân bằng). Nên thử áp dụng <em>Focal Loss</em> hoặc Augmentation dữ liệu FAKE.</li>`;
+            } else {
+                 evalHtml += `<li><strong>Hướng tối ưu:</strong> F1-Score khá ổn định. Bước tiếp theo có thể tinh chỉnh (fine-tune) lại Hyper parameters như số vòng Lặp (Epochs), Batch Size, hoặc Learning Rate.</li>`;
+            }
+            evalHtml += `</ul>`;
+            evalBox.innerHTML = evalHtml;
+        }
+
         renderResultFigures(data.figures || []);
     } catch (e) {
         console.warn('Could not load experiment results:', e);
@@ -593,6 +771,10 @@ const TYPE_LABELS = {
     train_multimodal: '🧠 Train Multimodal',
 };
 
+let currentHistoryPage = 1;
+const historyRowsPerPage = 10;
+let allFilteredHistory = [];
+
 async function loadRunHistory() {
     try {
         const runs = await api('/api/runs');
@@ -606,39 +788,74 @@ async function loadRunHistory() {
             filtered = runs.filter(r => r.task_type === filter);
         }
 
-        if (filtered.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="8" class="empty-state">Chưa có lần chạy nào</td></tr>';
-            return;
-        }
-
-        tbody.innerHTML = filtered.map(run => {
-            const params = tryParse(run.params);
-            const metrics = tryParse(run.metrics);
-            const statusClass = `badge-${run.status}`;
-            const typeLabel = TYPE_LABELS[run.task_type] || run.task_type;
-            const startTime = formatTime(run.started_at);
-            const endTime = run.finished_at ? formatTime(run.finished_at) : '—';
-            const paramsStr = Object.entries(params).slice(0, 3).map(([k, v]) => `${k}=${v}`).join(', ') || '—';
-            const metricsStr = formatMetrics(metrics);
-
-            return `<tr>
-                <td><code style="font-size:0.72rem;color:var(--accent)">${run.id}</code></td>
-                <td><span class="type-badge">${typeLabel}</span></td>
-                <td><span class="badge ${statusClass}">${run.status}</span></td>
-                <td style="white-space:nowrap">${startTime}</td>
-                <td style="white-space:nowrap">${endTime}</td>
-                <td class="params-cell">${paramsStr}</td>
-                <td class="metrics-cell">${metricsStr}</td>
-                <td>
-                    <button class="btn btn-sm btn-secondary" onclick="viewRunDetail('${run.id}')">📋</button>
-                    <button class="btn btn-sm btn-danger" onclick="deleteRun('${run.id}')" style="margin-left:4px">🗑</button>
-                </td>
-            </tr>`;
-        }).join('');
+        allFilteredHistory = filtered;
+        currentHistoryPage = 1;
+        renderHistoryPage();
     } catch (e) {
         console.warn('Could not load history:', e);
     }
 }
+
+function renderHistoryPage() {
+    const tbody = document.getElementById('historyBody');
+    if (allFilteredHistory.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" class="empty-state">Chưa có lần chạy nào</td></tr>';
+        if (document.getElementById('historyPagination')) {
+            document.getElementById('historyPagination').innerHTML = '';
+        }
+        return;
+    }
+
+    const totalPages = Math.ceil(allFilteredHistory.length / historyRowsPerPage);
+    if(currentHistoryPage > totalPages) currentHistoryPage = totalPages;
+
+    const start = (currentHistoryPage - 1) * historyRowsPerPage;
+    const items = allFilteredHistory.slice(start, start + historyRowsPerPage);
+
+    tbody.innerHTML = items.map(run => {
+        const params = tryParse(run.params);
+        const metrics = tryParse(run.metrics);
+        const statusClass = `badge-${run.status}`;
+        const typeLabel = TYPE_LABELS[run.task_type] || run.task_type;
+        const startTime = formatTime(run.started_at);
+        const endTime = run.finished_at ? formatTime(run.finished_at) : '—';
+        const paramsStr = Object.entries(params).slice(0, 3).map(([k, v]) => `${k}=${v}`).join(', ') || '—';
+        const metricsStr = formatMetrics(metrics);
+
+        return `<tr>
+            <td><code style="font-size:0.72rem;color:var(--accent)">${run.id}</code></td>
+            <td><span class="type-badge">${typeLabel}</span></td>
+            <td><span class="badge ${statusClass}">${run.status}</span></td>
+            <td style="white-space:nowrap">${startTime}</td>
+            <td style="white-space:nowrap">${endTime}</td>
+            <td class="params-cell">${paramsStr}</td>
+            <td class="metrics-cell">${metricsStr}</td>
+            <td>
+                <button class="btn btn-sm btn-secondary" onclick="viewRunDetail('${run.id}')">📋</button>
+                <button class="btn btn-sm btn-danger" onclick="deleteRun('${run.id}')" style="margin-left:4px">🗑</button>
+            </td>
+        </tr>`;
+    }).join('');
+
+    renderPagination(totalPages);
+}
+
+function renderPagination(totalPages) {
+    const pub = document.getElementById('historyPagination');
+    if (!pub) return;
+    let html = '';
+    
+    html += `<button class="btn btn-sm btn-secondary" onclick="setHistoryPage(${currentHistoryPage - 1})" ${currentHistoryPage === 1 ? 'disabled' : ''}>← Trước</button>`;
+    html += `<span style="display:flex; align-items:center; font-size:0.85rem; color:#94a3b8">Trang ${currentHistoryPage} / ${totalPages}</span>`;
+    html += `<button class="btn btn-sm btn-secondary" onclick="setHistoryPage(${currentHistoryPage + 1})" ${currentHistoryPage === totalPages ? 'disabled' : ''}>Sau →</button>`;
+    
+    pub.innerHTML = html;
+}
+
+window.setHistoryPage = function(page) {
+    currentHistoryPage = page;
+    renderHistoryPage();
+};
 
 function tryParse(val) {
     if (!val) return {};

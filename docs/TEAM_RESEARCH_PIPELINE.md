@@ -54,7 +54,7 @@ python src/utils/research_pipeline.py crawl --limit 25
 Lenh neu uu tien bai co anh:
 
 ```powershell
-python src/utils/research_pipeline.py crawl --limit 25 --images-only
+python src/utils/research_pipeline.py crawl --limit 100 --images-only
 ```
 
 Ghi chu:

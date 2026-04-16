@@ -73,6 +73,178 @@ def cmd_merge_labels(args: argparse.Namespace) -> None:
     )
 
 
+def cmd_auto_label(args: argparse.Namespace) -> None:
+    """Step 2.5: Auto-label unlabeled data using LLM (Groq by default)."""
+    auto_labeler_script = PROJECT_ROOT / "src" / "utils" / "auto_labeler.py"
+    command = [
+        PYTHON, str(auto_labeler_script),
+        "--input", args.input,
+        "--output", args.output,
+        "--method", args.method,
+        "--mode", "binary",
+        "--threshold", str(args.threshold),
+    ]
+    if args.limit is not None:
+        command.extend(["--limit", str(args.limit)])
+    if args.process_all:
+        command.append("--all")
+    run_command(command, f"Step 2.5: Auto-Label data using {args.method.upper()}")
+
+    # After auto-labeling, merge into labeled_master and refresh binary
+    run_command(
+        [
+            PYTHON,
+            "src/utils/build_binary_labeled_master.py",
+            "--input", args.output,
+            "--output", args.binary_output,
+            "--replace-label",
+        ],
+        "Step 2.5b: Refresh labeled_master_binary from auto-labeled data",
+    )
+
+
+def cmd_full_pipeline(args: argparse.Namespace) -> None:
+    """Run the full end-to-end pipeline: Crawl → Auto-Label → Enrich → Build Graphs → Train."""
+    print("\n" + "=" * 60)
+    print("  🤖 FULL AUTO PIPELINE — End-to-End")
+    print("=" * 60)
+
+    # Step 1: Crawl
+    crawl_cmd = [PYTHON, "src/data/reddit_crawler.py", "--limit", str(args.crawl_limit)]
+    if args.images_only:
+        crawl_cmd.append("--images-only")
+    if args.subreddits:
+        crawl_cmd.extend(["--subreddits", *args.subreddits])
+    run_command(crawl_cmd, "Step 1: Crawl Reddit")
+
+    # Step 2: Prepare batch (image + text preprocessing)
+    run_command(
+        [PYTHON, "src/utils/reddit_pipeline.py",
+         "--input", "data/01_raw/reddit/reddit_realtime_data.jsonl"],
+        "Step 2: Prepare batch for processing",
+    )
+
+    # Read tracker to get the latest clean batch
+    import json
+    tracker_path = os.path.join(PROJECT_ROOT, "data", "01_raw", "reddit", "processed_tracker.json")
+    try:
+        with open(tracker_path, "r", encoding="utf-8") as f:
+            last_batch = json.load(f).get("last_batch")
+        clean_batch_file = f"data/03_clean/Reddit/{last_batch}/Reddit/train.jsonl"
+    except Exception as e:
+        print(f"❌ Error reading tracker: {e}")
+        return
+
+    # Step 2.5: Auto-Label with LLM
+    auto_label_output = f"data/03_clean/Reddit/{last_batch}/reddit_auto_labeled.jsonl"
+    auto_labeler_script = PROJECT_ROOT / "src" / "utils" / "auto_labeler.py"
+    
+    auto_label_cmd = [
+        PYTHON, str(auto_labeler_script),
+        "--input", clean_batch_file,
+        "--output", auto_label_output,
+        "--method", args.llm,
+        "--mode", "binary",
+        "--threshold", str(args.confidence_threshold),
+    ]
+    if args.require_human_review:
+        auto_label_cmd.append("--ls-predictions")
+    
+    run_command(auto_label_cmd, f"Step 2.5: Auto-Label with {args.llm.upper()} (threshold={args.confidence_threshold})")
+
+    # Step 2.5b: Merge the auto-labeled data into labeled_master.jsonl safely
+    master_output = "data/03_clean/Fakeddit/labeled_master.jsonl"
+    run_command(
+        [
+            PYTHON, "src/utils/merge_ls_export_by_id.py",
+            "--input", auto_label_output,
+            "--output", master_output,
+        ],
+        "Step 2.5b: Merge auto-labeled data into Master JSONL",
+    )
+
+    # Step 2.5c: Build binary master from updated labeled_master.jsonl
+    run_command(
+        [
+            PYTHON, "src/utils/build_binary_labeled_master.py",
+            "--input", master_output,
+            "--output", "data/03_clean/Fakeddit/labeled_master_binary.jsonl",
+            "--replace-label",
+        ],
+        "Step 2.5c: Refresh labeled_master_binary",
+    )
+
+    # Step 4: Enrich with comment tree
+    run_command(
+        [
+            PYTHON, "src/utils/enrich_master_with_comments.py",
+            "--input", master_output,
+            "--output", "data/reddit_enriched_data.jsonl",
+            "--delay", str(args.enrich_delay),
+        ],
+        "Step 4: Enrich with comment trees",
+    )
+    run_command(
+        [
+            PYTHON, "src/utils/build_binary_labeled_master.py",
+            "--input", "data/reddit_enriched_data.jsonl",
+            "--output", "data/reddit_enriched_binary.jsonl",
+            "--replace-label",
+        ],
+        "Step 4b: Refresh enriched binary",
+    )
+
+    # Step 5: Build Graphs (Multimodal)
+    run_command(
+        [
+            PYTHON, "src/utils/build_cascade_graphs.py",
+            "--input", "data/reddit_enriched_data.jsonl",
+            "--output", "data/processed_graphs",
+        ],
+        "Step 5A: Build text cascade graphs",
+    )
+    run_command(
+        [
+            PYTHON, "src/utils/rebuild_graphs_with_images.py",
+            "--metadata", "data/reddit_enriched_data.jsonl",
+            "--graph_dir", "data/processed_graphs",
+            "--output_dir", "data/processed_graphs_multimodal",
+        ],
+        "Step 5B: Build multimodal graphs",
+    )
+
+    print("\n" + "=" * 60)
+    print("  ✅ DATA PREPARATION PIPELINE COMPLETED!")
+    print("  Dữ liệu đã sẵn sàng! Bạn có thể chuyển sang Tab Training để tự train thủ công.")
+    print("=" * 60)
+
+
+def cmd_train_all(args: argparse.Namespace) -> None:
+    """Train all models one by one."""
+    print("\n" + "=" * 60)
+    print("  🏆 TRAIN ALL MODELS SEQUENTIALLY")
+    print("=" * 60)
+
+    epochs = str(args.epochs)
+    batch_size = str(args.batch_size)
+    
+    models = [
+        ("Text Baseline", "src/training/train_baseline.py", ["--model", "text", "--epochs", epochs, "--batch_size", batch_size]),
+        ("Image Baseline", "src/training/train_baseline.py", ["--model", "image", "--epochs", epochs, "--batch_size", batch_size]),
+        ("Fusion Baseline", "src/training/train_baseline.py", ["--model", "fusion", "--epochs", epochs, "--batch_size", batch_size]),
+        ("Graph GNN", "src/training/train_gnn.py", ["--epochs", epochs, "--batch_size", batch_size]),
+        ("Multimodal GNN", "src/training/train_multimodal_gnn.py", ["--epochs", epochs, "--batch_size", batch_size]),
+    ]
+
+    for name, script, script_args in models:
+        cmd = [PYTHON, script] + script_args
+        run_command(cmd, f"Training {name}")
+
+    print("\n" + "=" * 60)
+    print("  ✅ ALL MODELS TRAINED SUCCESSFULLY!")
+    print("=" * 60)
+
+
 def cmd_enrich(args: argparse.Namespace) -> None:
     run_command(
         [
@@ -270,6 +442,47 @@ def build_parser() -> argparse.ArgumentParser:
     train.add_argument("--metadata", default="data/reddit_enriched_binary.jsonl")
     train.add_argument("--graph_dir", default="data/processed_graphs_multimodal")
     train.set_defaults(func=cmd_train)
+
+    # ── Auto-label (Step 2.5) ──────────────────────────────────
+    auto = subparsers.add_parser("auto-label", help="Step 2.5: Auto-label data using LLM (Groq by default)")
+    auto.add_argument("--input", default="data/01_raw/reddit/reddit_realtime_data.jsonl")
+    auto.add_argument("--output", default="data/03_clean/Fakeddit/labeled_master.jsonl")
+    auto.add_argument("--binary-output", default="data/03_clean/Fakeddit/labeled_master_binary.jsonl")
+    auto.add_argument("--method", choices=["groq", "clip", "text"], default="groq",
+                      help="LLM engine: groq (Llama4 Vision, best), clip, text")
+    auto.add_argument("--threshold", type=float, default=0.85,
+                      help="Min confidence to accept label (default: 0.85)")
+    auto.add_argument("--limit", type=int, default=None)
+    auto.add_argument("--all", action="store_true", dest="process_all",
+                      help="Re-label all records, not just unlabeled ones")
+    auto.set_defaults(func=cmd_auto_label)
+
+    # ── Full Pipeline (One-shot end-to-end) ────────────────────
+    full = subparsers.add_parser(
+        "run-full-pipeline",
+        help="🤖 Run the complete pipeline end-to-end: Crawl → Auto-Label → Enrich → Build Graphs → Train",
+    )
+    full.add_argument("--crawl-limit", type=int, default=50, help="Number of posts to crawl")
+    full.add_argument("--images-only", action="store_true", help="Only crawl posts with images")
+    full.add_argument("--subreddits", nargs="+", default=None)
+    full.add_argument("--llm", choices=["groq", "clip", "text"], default="groq",
+                      help="LLM engine for auto-labeling (default: groq)")
+    full.add_argument("--confidence-threshold", type=float, default=0.85,
+                      help="Min confidence for auto-labeling (default: 0.85)")
+    full.add_argument("--require-human-review", action="store_true",
+                      help="Export predictions to LS if confidence is below threshold")
+    full.add_argument("--enrich-delay", type=float, default=2.0,
+                      help="Delay between Reddit API calls during enrichment")
+    full.add_argument("--train-model", choices=["multimodal_gnn", "gnn"], default="multimodal_gnn")
+    full.add_argument("--epochs", type=int, default=30)
+    full.add_argument("--batch_size", type=int, default=32)
+    full.set_defaults(func=cmd_full_pipeline)
+
+    # ── Train All Models ────────────────────
+    train_all = subparsers.add_parser("train-all", help="🏆 Train all models sequentially")
+    train_all.add_argument("--epochs", type=int, default=20)
+    train_all.add_argument("--batch_size", type=int, default=16)
+    train_all.set_defaults(func=cmd_train_all)
 
     return parser
 

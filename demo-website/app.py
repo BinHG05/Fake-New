@@ -110,7 +110,7 @@ def launch_script(task_type: str, script_path: str, args: list = None, params: d
         cwd=PROJECT_ROOT,
         encoding="utf-8",
         errors="replace",
-        env={**os.environ, "PYTHONUNBUFFERED": "1", "PYTHONIOENCODING": "utf-8"},
+        env={**os.environ, "PYTHONUNBUFFERED": "1", "PYTHONIOENCODING": "utf-8", "PYTHONUTF8": "1"},
     )
 
     active_tasks[task_id] = {
@@ -378,6 +378,54 @@ def start_auto_label():
     params = {"input": input_file, "method": method, "mode": mode,
               "threshold": threshold, "limit": limit, "ls_predictions": ls_predictions}
     task_id = launch_script("auto_label", script, args, params)
+    return jsonify({"task_id": task_id, "status": "started"})
+
+
+@app.route("/api/full-pipeline/start", methods=["POST"])
+def start_full_pipeline():
+    """🤖 Run the complete data preparation pipeline: Crawl → Auto-Label (Groq) → Enrich → Build Graphs."""
+    data = request.json or {}
+    crawl_limit       = data.get("crawl_limit", 50)
+    llm               = data.get("llm", "groq")
+    confidence        = data.get("confidence_threshold", 0.85)
+    enrich_delay      = data.get("enrich_delay", 2.0)
+    images_only       = data.get("images_only", True)
+    human_review      = data.get("require_human_review", True)
+
+    script = os.path.join(PROJECT_ROOT, "src", "utils", "research_pipeline.py")
+    args = [
+        "run-full-pipeline",
+        "--crawl-limit",          str(crawl_limit),
+        "--llm",                  llm,
+        "--confidence-threshold", str(confidence),
+        "--enrich-delay",         str(enrich_delay),
+    ]
+    if images_only:
+        args.append("--images-only")
+    if human_review:
+        args.append("--require-human-review")
+
+    params = {
+        "crawl_limit": crawl_limit, "llm": llm,
+        "confidence_threshold": confidence,
+        "human_review": human_review,
+    }
+    task_id = launch_script("full_pipeline", script, args, params)
+    return jsonify({"task_id": task_id, "status": "started"})
+
+
+@app.route("/api/train-all/start", methods=["POST"])
+def start_train_all():
+    """🏆 Train all models sequentially (Baseline Text -> Image -> Fusion -> GNN -> Multimodal)"""
+    data = request.json or {}
+    epochs = data.get("epochs", 20)
+    batch_size = data.get("batch_size", 16)
+    
+    script = os.path.join(PROJECT_ROOT, "src", "utils", "research_pipeline.py")
+    args = ["train-all", "--epochs", str(epochs), "--batch_size", str(batch_size)]
+    params = {"epochs": epochs, "batch_size": batch_size}
+    
+    task_id = launch_script("train_all", script, args, params)
     return jsonify({"task_id": task_id, "status": "started"})
 
 
