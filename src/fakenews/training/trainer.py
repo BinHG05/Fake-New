@@ -230,12 +230,14 @@ def train_pipeline(
     if test_loader and checkpoint_path.exists():
         model.load_state_dict(torch.load(checkpoint_path, map_location=device, weights_only=True))
         test_metrics = evaluate_loader(model, test_loader, device)
-        with open(metrics_dir / "test_metrics.json", "w", encoding="utf-8") as f:
+        metric_file = "dev_test_metrics.json" if (limit is not None and limit > 0) else "test_metrics.json"
+        with open(metrics_dir / metric_file, "w", encoding="utf-8") as f:
             json.dump(test_metrics, f, indent=2)
         logger.info(
-            "Final Test Evaluation: Accuracy=%.4f, F1=%.4f",
+            "Final Test Evaluation: Accuracy=%.4f, F1=%.4f (Saved to %s)",
             test_metrics["accuracy"],
             test_metrics["f1"],
+            metric_file,
         )
     else:
         test_metrics = {}
