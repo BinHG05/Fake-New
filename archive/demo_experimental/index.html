@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fake News Detection Demo</title>
+    <meta name="description" content="Predict fake news, run training, and review the latest project results.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <canvas id="particles"></canvas>
+
+    <header class="topbar">
+        <div class="brand">
+            <span class="brand-mark">FN</span>
+            <div>
+                <p class="brand-title">Fake News Detection Demo</p>
+                <p class="brand-subtitle">Multimodal research workspace</p>
+            </div>
+        </div>
+        <nav class="nav-links">
+            <a href="#predict" class="nav-link active">Predict</a>
+            <a href="#training" class="nav-link">Training</a>
+            <a href="#results" class="nav-link">Training Results</a>
+        </nav>
+        <div class="topbar-actions">
+            <button class="topbar-toggle" id="presentationModeBtn" type="button">Presentation Mode</button>
+            <div class="status-pill" id="navStatus">
+                <span class="status-dot idle"></span>
+                <span class="status-text">Ready</span>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <section class="hero-shell">
+            <div class="hero-copy">
+                <p class="eyebrow">Binary Fake News Detection</p>
+                <h1>Live research demo for multimodal fake news screening on Reddit.</h1>
+                <p class="hero-text">
+                    The dashboard is optimized for defense presentations: one place to run URL inference,
+                    explain the decision, and connect the prediction back to the graph structure.
+                </p>
+                <div class="hero-actions">
+                    <a class="btn btn-primary" href="#predict">Open Demo Flow</a>
+                    <a class="btn btn-secondary" href="#results">Show Latest Results</a>
+                </div>
+            </div>
+            <div class="hero-summary">
+                <div class="mini-card">
+                    <span class="mini-label">Latest champion</span>
+                    <strong id="heroChampionAcc">--</strong>
+                    <span class="mini-foot">CLIP-only</span>
+                </div>
+                <div class="mini-card">
+                    <span class="mini-label">Dataset</span>
+                    <strong id="heroDatasetSize">--</strong>
+                    <span class="mini-foot">binary samples</span>
+                </div>
+            </div>
+        </section>
+
+        <section id="predict" class="section">
+            <div class="section-heading">
+                <p class="eyebrow">Section 01</p>
+                <h2>Predict</h2>
+                <p>Run the live demo on a Reddit URL or a batch JSONL file, then read the model output in
+                    presentation-friendly language.</p>
+            </div>
+
+            <div class="predict-layout">
+                <div class="panel-stack">
+                    <article class="panel demo-kit-panel">
+                        <div class="panel-head">
+                            <div>
+                                <h3>Demo Inputs</h3>
+                                <p>Prepared URLs and batch file for quick testing.</p>
+                            </div>
+                        </div>
+
+                        <div class="demo-kit-block">
+                            <span class="demo-kit-label">Prepared URLs</span>
+                            <div class="demo-chip-row">
+                                <button class="demo-chip" type="button" onclick="useDemoUrl('science_a')">Science
+                                    A</button>
+                                <button class="demo-chip" type="button" onclick="useDemoUrl('science_b')">Science
+                                    B</button>
+                                <button class="demo-chip" type="button" onclick="useDemoUrl('onion_a')">TheOnion
+                                    A</button>
+                                <button class="demo-chip" type="button" onclick="useDemoUrl('onion_b')">TheOnion
+                                    B</button>
+                            </div>
+                            <p class="demo-kit-note" id="demoUrlHint">Pick one prepared URL to fill the input instantly.
+                            </p>
+                        </div>
+
+                        <div class="demo-kit-block">
+                            <span class="demo-kit-label">Prepared Batch Files</span>
+                            <div class="demo-file-card">
+                                <code id="demoBatchPath">demo-website/demo_batch_curated.jsonl</code>
+                                <button class="btn btn-ghost btn-compact" type="button"
+                                    onclick="copyDemoBatchPath('demoBatchPath')">Copy Reddit</button>
+                            </div>
+                            <div class="demo-file-card" style="margin-top: 8px;">
+                                <code id="demoBatchVozPath">demo-website/demo_batch_voz.jsonl</code>
+                                <button class="btn btn-ghost btn-compact" type="button"
+                                    onclick="copyDemoBatchPath('demoBatchVozPath')">Copy VOZ</button>
+                            </div>
+                            <p class="demo-kit-note">Curated test cases for Reddit and VOZ (Vietnamese) platforms.</p>
+                        </div>
+
+                    </article>
+
+                    <article class="panel">
+                        <div class="panel-head">
+                            <div>
+                                <h3>Reddit URL</h3>
+                                <p>Paste a Reddit post URL to run end-to-end inference.</p>
+                            </div>
+                            <span class="health-badge" id="predictorHealthBadge">Checking</span>
+                        </div>
+                        <label for="predictUrlInput">Post URL</label>
+                        <input type="url" id="predictUrlInput" class="input"
+                            placeholder="https://www.reddit.com/r/worldnews/comments/...">
+                        <button class="btn btn-primary" id="predictUrlBtn" onclick="predictUrl()">Predict URL</button>
+                    </article>
+
+                    <article class="panel">
+                        <div class="panel-head">
+                            <div>
+                                <h3>Batch JSONL</h3>
+                                <p>Upload a JSONL file to evaluate multiple items at once.</p>
+                            </div>
+                        </div>
+                        <label for="predictBatchFile">JSONL file</label>
+                        <input type="file" id="predictBatchFile" class="input" accept=".jsonl,.txt,application/json">
+                        <button class="btn btn-secondary" id="predictBatchBtn" onclick="predictBatch()">Run Batch
+                            Prediction</button>
+                    </article>
+                </div>
+
+                <article class="panel result-panel">
+                    <div class="panel-head">
+                        <div>
+                            <h3>Prediction Output</h3>
+                            <p id="predictionStatusText">Model status is loading.</p>
+                        </div>
+                    </div>
+
+                    <div id="predictionError" class="message error hidden"></div>
+                    <div id="predictionWarnings" class="message warning hidden"></div>
+
+                    <div id="predictionLoading" class="loading-box hidden">
+                        <div class="spinner"></div>
+                        <div>
+                            <strong>Running inference...</strong>
+                            <p>Fetching metadata, building the graph, and scoring the sample.</p>
+                        </div>
+                    </div>
+
+                    <div id="predictionEmpty" class="empty-state">
+                        No prediction yet. Submit a Reddit URL or upload a batch file.
+                    </div>
+                    <div id="predictionResult" class="hidden"></div>
+                    <div id="batchResult" class="hidden"></div>
+                </article>
+            </div>
+        </section>
+
+        <section id="training" class="section">
+            <div class="section-heading">
+                <p class="eyebrow">Section 02</p>
+                <h2>Training</h2>
+                <p>Launch a single training run or the full model sequence.</p>
+            </div>
+
+            <div class="training-layout">
+                <article class="panel training-config">
+                    <h3>Training Configuration</h3>
+
+                    <div class="form-group">
+                        <label for="modelType">Model</label>
+                        <select id="modelType" class="input" onchange="updateTrainingForm()">
+                            <option value="multimodal_v3">Multimodal GNN v3</option>
+                            <option value="multimodal_v2">Content Fusion v2</option>
+                            <option value="text">Text-only baseline</option>
+                            <option value="image">Image-only baseline</option>
+                            <option value="fusion">Fusion baseline</option>
+                            <option value="gnn">Graph-only GNN</option>
+                            <option value="multimodal">Legacy multimodal GNN</option>
+                        </select>
+                    </div>
+
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="trainEpochs">Epochs</label>
+                            <input type="number" id="trainEpochs" class="input" value="20" min="1" max="200">
+                        </div>
+                        <div class="form-group">
+                            <label for="trainLR">Learning rate</label>
+                            <input type="number" id="trainLR" class="input" value="0.0002" step="0.0001" min="0">
+                        </div>
+                        <div class="form-group" id="batchSizeGroup">
+                            <label for="trainBatch">Batch size</label>
+                            <input type="number" id="trainBatch" class="input" value="16" min="1" max="128">
+                        </div>
+                        <div class="form-group">
+                            <label for="trainPatience">Patience</label>
+                            <input type="number" id="trainPatience" class="input" value="7" min="1" max="50">
+                        </div>
+                    </div>
+
+                    <div class="form-grid hidden" id="advancedTrainingGrid">
+                        <div class="form-group" id="gnnTypeGroup">
+                            <label for="gnnType">GNN type</label>
+                            <select id="gnnType" class="input">
+                                <option value="gat">GAT</option>
+                                <option value="gcn">GCN</option>
+                                <option value="sage">GraphSAGE</option>
+                            </select>
+                        </div>
+                        <div class="form-group" id="fusionTypeGroup">
+                            <label for="fusionType">Fusion type</label>
+                            <select id="fusionType" class="input">
+                                <option value="cross_attention">Cross-attention</option>
+                                <option value="gated">Gated fusion</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="button-row">
+                        <button class="btn btn-primary" id="trainBtn" onclick="startTraining()">Start Training</button>
+                        <button class="btn btn-secondary" id="trainAllBtn" onclick="startTrainAll()">Train All</button>
+                    </div>
+                </article>
+
+                <article class="panel training-log-panel">
+                    <div class="panel-head">
+                        <div>
+                            <h3>Training Output</h3>
+                            <p>Live log stream from the current run.</p>
+                        </div>
+                        <button class="btn btn-ghost hidden" id="stopTrainBtn" onclick="stopCurrentTask()">Stop</button>
+                    </div>
+
+                    <div class="progress-wrap hidden" id="trainingStatus">
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progressFill"></div>
+                        </div>
+                        <span id="progressText">Training in progress...</span>
+                    </div>
+
+                    <div class="log-shell active" id="trainLog">
+                        <pre class="log-content">No training run yet.</pre>
+                    </div>
+                </article>
+            </div>
+        </section>
+
+        <section id="results" class="section">
+            <div class="section-heading">
+                <p class="eyebrow">Section 03</p>
+                <h2>Training Results</h2>
+                <p>Latest English summary, comparison table, and updated result figures.</p>
+            </div>
+
+            <div class="results-cards">
+                <article class="metric-card">
+                    <span class="metric-label">Dataset size</span>
+                    <strong id="datasetTotal">--</strong>
+                    <span class="metric-foot">expanded binary dataset</span>
+                </article>
+                <article class="metric-card">
+                    <span class="metric-label">Champion accuracy</span>
+                    <strong id="championAccuracy">--</strong>
+                    <span class="metric-foot" id="championDetails">latest CLIP-only track</span>
+                </article>
+                <article class="metric-card">
+                    <span class="metric-label">Champion F1</span>
+                    <strong id="championF1">--</strong>
+                    <span class="metric-foot">binary F1</span>
+                </article>
+            </div>
+
+            <article class="panel note-panel">
+                <h3>Result Scope</h3>
+                <p id="resultsScopeNote">Loading the latest result scope note...</p>
+            </article>
+
+            <article class="panel">
+                <div class="panel-head">
+                    <div>
+                        <h3>Latest Comparison Table</h3>
+                        <p>Latest leaderboard used in the demo narrative.</p>
+                    </div>
+                </div>
+                <div class="table-wrap">
+                    <table class="results-table">
+                        <thead>
+                            <tr>
+                                <th>Model</th>
+                                <th>Track</th>
+                                <th>Accuracy</th>
+                                <th>F1</th>
+                                <th>Notes</th>
+                            </tr>
+                        </thead>
+                        <tbody id="resultsTableBody">
+                            <tr>
+                                <td colspan="5" class="empty-row">Loading latest results...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </article>
+
+            <article class="panel">
+                <div class="panel-head">
+                    <div>
+                        <h3>Updated Figures</h3>
+                        <p>Latest comparison plus refreshed supporting experiment figures.</p>
+                    </div>
+                </div>
+                <div id="resultsFigureGrid" class="figure-grid">
+                    <div class="empty-state">Loading figures...</div>
+                </div>
+            </article>
+        </section>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+
+</html>

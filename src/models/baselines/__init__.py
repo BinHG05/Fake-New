@@ -1,6 +1,7 @@
 # Baseline models package
-# Contains:
-# - text_only.py
-# - image_only.py
-# - graph_only.py
-# - fusion.py
+from src.models.baselines.text_only import TextOnlyModel
+from src.models.baselines.image_only import ImageOnlyModel
+from src.models.baselines.graph_only import GraphOnlyModel
+from src.models.baselines.fusion import SimpleFusionModel
+
+__all__ = ['TextOnlyModel', 'ImageOnlyModel', 'GraphOnlyModel', 'SimpleFusionModel']

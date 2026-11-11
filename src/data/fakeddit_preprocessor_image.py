@@ -463,6 +463,11 @@ def main():
         default=None,
         help='Maximum number of samples to process (default: all)'
     )
+    parser.add_argument(
+        '--dataset-name',
+        default='Fakeddit',
+        help='Dataset name for organizing output folders (default: Fakeddit)'
+    )
     
     args = parser.parse_args()
     
@@ -493,9 +498,9 @@ def main():
     SHARED_OUTPUT = "data/02_processed/dataset_output.jsonl"
     
     # File riêng cho batch này (AUTO-INCREMENT - không ghi đè)
-    INDIVIDUAL_OUTPUT_BASE = f"data/02_processed/Fakeddit/dataset_Fakeddit_{batch_name}"
+    INDIVIDUAL_OUTPUT_BASE = f"data/02_processed/{args.dataset_name}/dataset_{args.dataset_name}_{batch_name}"
     
-    DATASET_NAME = "Fakeddit"
+    DATASET_NAME = args.dataset_name
     
     USE_PADDING = True
     MAX_SAMPLES = args.max_samples

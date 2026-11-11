@@ -1,1 +1,0 @@
-class BLIPModel: pass

@@ -19,6 +19,11 @@ Nếu bạn mới tham gia dự án, hãy bắt đầu từ đây:
     *   **Dành cho:** Team Data Annotation.
     *   **Thành phần chính:** Command Docker, Cấu hình Cloud Storage, Quy trình làm việc.
 
+*   **[🧭 TEAM_RESEARCH_PIPELINE.md](./TEAM_RESEARCH_PIPELINE.md)**
+    *   **Nội dung:** Quy trình chuẩn 6 bước từ crawl Reddit đến train model.
+    *   **Dành cho:** Toàn bộ team.
+    *   **Thành phần chính:** Lệnh chuẩn, đầu vào/đầu ra, checkpoint sau từng bước.
+
 ---
 
 ## 🛠️ 2. Dành cho Developer (Technical)
@@ -61,8 +66,10 @@ docker-compose up -d
 ### Script quan trọng
 | Task | Lệnh |
 |------|------|
-| **Chạy Pipeline Batch 400-600** | `python src/utils/batch_pipeline.py --start 400 --count 200` |
-| **Gộp file sau khi gán nhãn** | `python src/utils/convert_ls_export_to_jsonl.py <input> <output> --append` |
+| **Chạy Pipeline Batch 400-600** | `python src/utils/batch_pipeline.py --start 1200 --count 200` |
+| **Pipeline nghiên cứu cho team** | `python src/utils/research_pipeline.py --help` |
+| **Menu Windows cho team** | `run_team_cycle.bat` |
+| **Gộp file sau khi gán nhãn** | `python src/utils/research_pipeline.py merge-labels --input <export.json>` |
 | **Train Pilot Model** | `python src/training/train_gnn.py` |
 
 ---

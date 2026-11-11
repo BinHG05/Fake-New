@@ -95,6 +95,10 @@ LABEL_MAPPING = {
     'Fake': 'Fake',
     'true': 'True',
     'fake': 'Fake',
+    # Reddit data (chưa gán nhãn)
+    'Unlabeled': 'Unlabeled',
+    'UNLABELED': 'Unlabeled',
+    'unlabeled': 'Unlabeled',
 }
 
 # CORE_SCHEMA fields (01_raw)
@@ -121,7 +125,8 @@ class FakedditDataProcessor:
         min_text_length: int = 5,
         max_text_length: int = 5000,
         train_ratio: float = 0.7,
-        val_ratio: float = 0.15
+        val_ratio: float = 0.15,
+        dataset_name: str = "Fakeddit"
     ):
         """
         Initialize the processor
@@ -143,6 +148,7 @@ class FakedditDataProcessor:
         self.train_ratio = train_ratio
         self.val_ratio = val_ratio
         self.test_ratio = 1 - train_ratio - val_ratio
+        self.dataset_name = dataset_name
         
         # Create timestamp for this run
         self.run_timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -362,7 +368,7 @@ class FakedditDataProcessor:
             'graph_features': {},
             
             # Metadata
-            'source_dataset': 'Fakeddit',
+            'source_dataset': self.dataset_name,
             'processed_timestamp': self.run_timestamp
         }
         
@@ -393,8 +399,9 @@ class FakedditDataProcessor:
         # Separate by label
         fake_records = [r for r in records if r.get('label') == 'Fake']
         true_records = [r for r in records if r.get('label') == 'True']
+        unlabeled_records = [r for r in records if r.get('label') not in ('Fake', 'True')]
         
-        print(f"  Label distribution: Fake={len(fake_records)}, True={len(true_records)}")
+        print(f"  Label distribution: Fake={len(fake_records)}, True={len(true_records)}, Unlabeled={len(unlabeled_records)}")
         
         def split_class(class_records: List[Dict]) -> Tuple[List[Dict], List[Dict], List[Dict]]:
             if len(class_records) == 0:
@@ -438,8 +445,12 @@ class FakedditDataProcessor:
         fake_train, fake_val, fake_test = split_class(fake_records)
         true_train, true_val, true_test = split_class(true_records)
         
+        # Unlabeled records → all go to train (labeling queue, chưa thể split)
+        if unlabeled_records:
+            print(f"  ℹ️  {len(unlabeled_records)} Unlabeled records → train (cần gán nhãn trước)")
+        
         # Combine splits
-        train_set = fake_train + true_train
+        train_set = fake_train + true_train + unlabeled_records
         val_set = fake_val + true_val
         test_set = fake_test + true_test
         
@@ -565,7 +576,7 @@ class FakedditDataProcessor:
         print("STEP 3/5: SAVING 02_processed")
         print("=" * 60)
         
-        output_02_file = self.output_02_dir / f"dataset_Fakeddit_{self.run_timestamp}.jsonl"
+        output_02_file = self.output_02_dir / f"dataset_{self.dataset_name}_{self.run_timestamp}.jsonl"
         
         with open(output_02_file, 'w', encoding='utf-8') as f:
             for record in processed_records:
@@ -599,12 +610,12 @@ class FakedditDataProcessor:
         print("STEP 5/5: SAVING 03_clean")
         print("=" * 60)
         
-        # Create Fakeddit subdirectory
-        output_03_fakeddit = self.output_03_dir / "Fakeddit"
-        output_03_fakeddit.mkdir(parents=True, exist_ok=True)
+        # Create dataset subdirectory
+        output_03_dataset = self.output_03_dir / self.dataset_name
+        output_03_dataset.mkdir(parents=True, exist_ok=True)
         
         for split_name, split_data in [('train', train_set), ('val', val_set), ('test', test_set)]:
-            output_file = output_03_fakeddit / f"{split_name}.jsonl"
+            output_file = output_03_dataset / f"{split_name}.jsonl"
             with open(output_file, 'w', encoding='utf-8') as f:
                 for record in split_data:
                     f.write(json.dumps(record, ensure_ascii=False) + '\n')
@@ -615,13 +626,13 @@ class FakedditDataProcessor:
         statistics = self.calculate_statistics(all_records)
         statistics['processing_stats'] = self.stats
         
-        stats_file = output_03_fakeddit / "statistics.json"
+        stats_file = output_03_dataset / "statistics.json"
         with open(stats_file, 'w', encoding='utf-8') as f:
             json.dump(statistics, f, indent=2, ensure_ascii=False)
         print(f"✓ Saved statistics.json")
         
         # Save quality report
-        quality_file = output_03_fakeddit / f"quality_report_{self.run_timestamp}.json"
+        quality_file = output_03_dataset / f"quality_report_{self.run_timestamp}.json"
         with open(quality_file, 'w', encoding='utf-8') as f:
             json.dump({
                 'run_timestamp': self.run_timestamp,
@@ -682,6 +693,11 @@ def main():
         default=None,
         help='Name of the batch (e.g., "batch_200_400") to create a separate folder in 03_clean'
     )
+    parser.add_argument(
+        '--dataset-name',
+        default='Fakeddit',
+        help='Dataset name for organizing output folders (default: Fakeddit)'
+    )
     
     args = parser.parse_args()
     
@@ -695,16 +711,18 @@ def main():
     # Define paths following the 01/02/03 structure
     INPUT_FILE = args.input
     
+    dataset_name = args.dataset_name
+    
     OUTPUT_02_DIR = os.path.join(
         project_root,
-        "data", "02_processed", "Fakeddit"
+        "data", "02_processed", dataset_name
     )
     
-    # Nếu có batch_name, tạo folder con trong 03_clean/Fakeddit/
+    # Nếu có batch_name, tạo folder con trong 03_clean/{dataset_name}/
     if args.batch_name:
         OUTPUT_03_DIR = os.path.join(
             project_root,
-            "data", "03_clean", "Fakeddit", args.batch_name
+            "data", "03_clean", dataset_name, args.batch_name
         )
     else:
         OUTPUT_03_DIR = os.path.join(
@@ -743,7 +761,8 @@ def main():
         min_text_length=5,
         max_text_length=5000,
         train_ratio=0.7,
-        val_ratio=0.15
+        val_ratio=0.15,
+        dataset_name=dataset_name
     )
     
     # Run processing
@@ -756,19 +775,19 @@ def main():
         print("=" * 60)
         print()
         print("1. Review processed data:")
-        print(f"   - {OUTPUT_02_DIR}/dataset_Fakeddit_*.jsonl")
+        print(f"   - {OUTPUT_02_DIR}/dataset_{dataset_name}_*.jsonl")
         print()
         print("2. Review clean splits:")
-        print(f"   - {OUTPUT_03_DIR}/Fakeddit/train.jsonl")
-        print(f"   - {OUTPUT_03_DIR}/Fakeddit/val.jsonl")
-        print(f"   - {OUTPUT_03_DIR}/Fakeddit/test.jsonl")
+        print(f"   - {OUTPUT_03_DIR}/{dataset_name}/train.jsonl")
+        print(f"   - {OUTPUT_03_DIR}/{dataset_name}/val.jsonl")
+        print(f"   - {OUTPUT_03_DIR}/{dataset_name}/test.jsonl")
         print()
         print("3. Validate with schema:")
         print("   python validate/validate_schema.py")
         print()
         print("4. Track with DVC (optional):")
         print(f"   dvc add {OUTPUT_02_DIR}")
-        print(f"   dvc add {OUTPUT_03_DIR}/Fakeddit")
+        print(f"   dvc add {OUTPUT_03_DIR}/{dataset_name}")
         print()
         
     except KeyboardInterrupt:

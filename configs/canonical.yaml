@@ -1,0 +1,54 @@
+# configs/canonical.yaml
+# Official Canonical Pipeline Configuration
+
+dataset:
+  metadata: data/all_merged_binary.jsonl
+  graph_dir: data/processed_graphs_v3
+  label_mode: binary
+  id_column: id
+  label_column: label_binary
+  split_column: split
+
+model:
+  type: multimodal_cascade_gnn
+  text_dim: 768
+  image_dim: 1025
+  fusion_dim: 512
+  hidden_dim: 512
+  num_classes: 2
+  num_gnn_layers: 3
+  dropout: 0.3
+  fusion: cross_attention
+  gnn: gat
+  learn_missing_image_emb: false
+
+training:
+  seed: 42
+  batch_size: 32
+  epochs: 50
+  learning_rate: 0.0001
+  weight_decay: 0.001
+  patience: 20
+  selection_metric: acc
+  fake_class_weight: 2.4
+  focal_gamma: 2.0
+  label_smoothing: 0.05
+  checkpoint_dir: artifacts/checkpoints
+  checkpoint_name: multimodal_cascade_gnn_binary.pt
+
+evaluation:
+  threshold: 0.5
+  primary_metric: accuracy
+  save_predictions: true
+  output_dir: artifacts/metrics
+  figures_dir: artifacts/figures
+  predictions_dir: artifacts/predictions
+
+serving:
+  checkpoint: artifacts/checkpoints/multimodal_cascade_gnn_binary.pt
+  host: 127.0.0.1
+  port: 5000
+  uncertain_threshold: 0.15
+  temperature: 1.0
+  allow_fallback: false
+

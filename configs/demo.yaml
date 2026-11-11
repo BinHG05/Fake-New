@@ -1,0 +1,27 @@
+# configs/demo.yaml
+# Production-ready configuration for the lightweight inference demo website
+
+serving:
+  checkpoint: artifacts/checkpoints/multimodal_cascade_gnn_binary.pt
+  host: 127.0.0.1
+  port: 5000
+  debug: false
+  uncertain_threshold: 0.15
+  temperature: 1.0
+  allow_fallback: false
+  sample_batch_path: demo/sample_batch.jsonl
+  metrics_path: artifacts/metrics/test_metrics.json
+  confusion_matrix_path: artifacts/figures/confusion_matrix.png
+
+model:
+  type: multimodal_cascade_gnn
+  text_dim: 768
+  image_dim: 1025
+  fusion_dim: 512
+  hidden_dim: 512
+  num_classes: 2
+  num_gnn_layers: 3
+  dropout: 0.3
+  fusion: cross_attention
+  gnn: gat
+

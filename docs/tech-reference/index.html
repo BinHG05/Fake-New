@@ -1,0 +1,1074 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tech Stack Reference — Fake News Detection Project</title>
+    <meta name="description"
+        content="Danh sách công nghệ và tài liệu học tập cho dự án Fake News Detection sử dụng Multimodal GNN.">
+    <link rel="stylesheet" href="styles.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <!-- Highlight.js for code syntax highlighting -->
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/yaml.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/dockerfile.min.js"></script>
+</head>
+
+<body>
+    <!-- Animated Background -->
+    <div class="bg-grid"></div>
+    <div class="bg-glow bg-glow-1"></div>
+    <div class="bg-glow bg-glow-2"></div>
+    <div class="bg-glow bg-glow-3"></div>
+
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <span class="logo-icon">⚡</span>
+                    <div>
+                        <h1 class="logo-title">Tech Stack Reference</h1>
+                        <p class="logo-subtitle">Fake News Detection with Multimodal GNN</p>
+                    </div>
+                </div>
+                <nav class="nav" id="main-nav">
+                    <a href="#ai-dl" class="nav-link active" data-category="ai-dl">🧠 AI / Deep Learning</a>
+                    <a href="#data" class="nav-link" data-category="data">📊 Data Processing</a>
+                    <a href="#web" class="nav-link" data-category="web">🌐 Web & Dashboard</a>
+                    <a href="#mlops" class="nav-link" data-category="mlops">⚙️ MLOps & DevOps</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Architecture Overview -->
+    <section class="architecture-section">
+        <div class="container">
+            <div class="architecture-banner">
+                <h2>🏗️ Kiến trúc tổng quan</h2>
+                <div class="pipeline-flow">
+                    <div class="pipeline-step">
+                        <div class="step-icon">📥</div>
+                        <div class="step-label">Thu thập dữ liệu</div>
+                        <div class="step-tech">Reddit API, Pandas</div>
+                    </div>
+                    <div class="pipeline-arrow">→</div>
+                    <div class="pipeline-step">
+                        <div class="step-icon">🔧</div>
+                        <div class="step-label">Tiền xử lý</div>
+                        <div class="step-tech">PIL, OpenCV, Regex</div>
+                    </div>
+                    <div class="pipeline-arrow">→</div>
+                    <div class="pipeline-step">
+                        <div class="step-icon">🏷️</div>
+                        <div class="step-label">Gán nhãn</div>
+                        <div class="step-tech">Label Studio, CLIP</div>
+                    </div>
+                    <div class="pipeline-arrow">→</div>
+                    <div class="pipeline-step">
+                        <div class="step-icon">🕸️</div>
+                        <div class="step-label">Xây dựng đồ thị</div>
+                        <div class="step-tech">PyG, NetworkX</div>
+                    </div>
+                    <div class="pipeline-arrow">→</div>
+                    <div class="pipeline-step">
+                        <div class="step-icon">🤖</div>
+                        <div class="step-label">Huấn luyện</div>
+                        <div class="step-tech">PyTorch, GNN</div>
+                    </div>
+                    <div class="pipeline-arrow">→</div>
+                    <div class="pipeline-step">
+                        <div class="step-icon">📊</div>
+                        <div class="step-label">Dashboard</div>
+                        <div class="step-tech">Flask, SSE</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            <!-- ============================================== -->
+            <!-- CATEGORY: AI / DEEP LEARNING -->
+            <!-- ============================================== -->
+            <section class="category-section" id="ai-dl" data-category="ai-dl">
+                <div class="category-header">
+                    <h2 class="category-title"><span class="category-emoji">🧠</span> AI / Deep Learning</h2>
+                    <p class="category-desc">Framework và thư viện lõi cho huấn luyện mô hình phát hiện tin giả</p>
+                </div>
+
+                <div class="tech-grid">
+                    <!-- PyTorch -->
+                    <article class="tech-card" id="pytorch-card">
+                        <div class="card-header">
+                            <div class="card-icon pytorch-icon">🔥</div>
+                            <div>
+                                <h3 class="card-title">PyTorch</h3>
+                                <span class="card-badge">Core Framework</span>
+                            </div>
+                        </div>
+                        <p class="card-desc">Framework Deep Learning chính của dự án. Dùng để xây dựng, huấn luyện và
+                            đánh giá tất cả các mô hình từ baseline đến Multimodal GNN.</p>
+                        <div class="card-files">
+                            <span class="file-tag">src/models/advanced_gnn.py</span>
+                            <span class="file-tag">src/models/multimodal_fusion.py</span>
+                            <span class="file-tag">src/models/baselines/*.py</span>
+                            <span class="file-tag">src/data/text_image_dataset.py</span>
+                            <span class="file-tag">src/training/*.py</span>
+                        </div>
+                        <div class="card-links">
+                            <h4>📚 Tài liệu học</h4>
+                            <ul>
+                                <li><a href="https://pytorch.org/tutorials/" target="_blank">PyTorch Official
+                                        Tutorials</a></li>
+                                <li><a href="https://pytorch.org/docs/stable/index.html" target="_blank">PyTorch
+                                        Documentation</a></li>
+                                <li><a href="https://www.learnpytorch.io/" target="_blank">Learn PyTorch (Zero to
+                                        Mastery)</a></li>
+                                <li><a href="https://www.youtube.com/playlist?list=PLqnslRFeH2UrcDBWF5mfPGpqQDSta6VK4"
+                                        target="_blank">PyTorch for Deep Learning (YouTube)</a></li>
+                            </ul>
+                        </div>
+                        <div class="card-example">
+                            <div class="example-header">
+                                <span class="example-badge">📂 Ví dụ từ project</span>
+                                <span class="example-file">src/models/multimodal_fusion.py</span>
+                            </div>
+                            <pre><code class="language-python">class CrossAttentionFusion(nn.Module):
+    """
+    Cross-attention: text embedding attends to image embedding.
+
+    Architecture:
+      text (768d) → Q projection (fusion_dim)
+      image (512d) → K, V projection (fusion_dim)
+      attended = MultiHeadAttention(Q=text, K=image, V=image)
+      gate = σ(W · [text_proj; attended])
+      output = gate * attended + (1-gate) * text_proj
+    """
+    def __init__(self, text_dim=768, image_dim=512,
+                 fusion_dim=256, num_heads=4, dropout=0.1):
+        super().__init__()
+        # Project modalities to shared space
+        self.text_proj = nn.Linear(text_dim, fusion_dim)
+        self.image_proj = nn.Linear(image_dim, fusion_dim)
+
+        # Multi-head attention (text as Q, image as K/V)
+        self.attn = nn.MultiheadAttention(
+            embed_dim=fusion_dim, num_heads=num_heads,
+            dropout=dropout, batch_first=True,
+        )
+        # Gated residual
+        self.gate_linear = nn.Linear(fusion_dim * 2, 1)
+        self.norm = nn.LayerNorm(fusion_dim)
+
+    def forward(self, text_emb, image_emb):
+        t = self.text_proj(text_emb)     # [B, fusion_dim]
+        i = self.image_proj(image_emb)   # [B, fusion_dim]
+        t_seq = t.unsqueeze(1)
+        i_seq = i.unsqueeze(1)
+
+        # Cross attention: text queries image
+        attended, _ = self.attn(query=t_seq, key=i_seq, value=i_seq)
+        attended = attended.squeeze(1)
+
+        # Gated residual: learn to blend text vs attended
+        gate = torch.sigmoid(
+            self.gate_linear(torch.cat([t, attended], dim=-1))
+        )
+        fused = gate * attended + (1 - gate) * t
+        return self.norm(fused)</code></pre>
+                        </div>
+                    </article>
+
+                    <!-- PyTorch Geometric -->
+                    <article class="tech-card" id="pyg-card">
+                        <div class="card-header">
+                            <div class="card-icon pyg-icon">🕸️</div>
+                            <div>
+                                <h3 class="card-title">PyTorch Geometric (PyG)</h3>
+                                <span class="card-badge">Graph Neural Networks</span>
+                            </div>
+                        </div>
+                        <p class="card-desc">Thư viện mở rộng của PyTorch cho GNN. Cung cấp SAGEConv, GCN và các cấu
+                            trúc đồ thị để mô hình hóa mạng lưới lan truyền tin tức.</p>
+                        <div class="card-files">
+                            <span class="file-tag">src/models/advanced_gnn.py</span>
+                            <span class="file-tag">src/models/cascade_gnn.py</span>
+                            <span class="file-tag">src/data/preprocessor_graph.py</span>
+                        </div>
+                        <div class="card-links">
+                            <h4>📚 Tài liệu học</h4>
+                            <ul>
+                                <li><a href="https://pytorch-geometric.readthedocs.io/en/latest/" target="_blank">PyG
+                                        Official Documentation</a></li>
+                                <li><a href="https://pytorch-geometric.readthedocs.io/en/latest/get_started/colabs.html"
+                                        target="_blank">PyG Colab Notebooks</a></li>
+                                <li><a href="https://www.youtube.com/watch?v=JtDgmmQ60x8" target="_blank">Stanford
+                                        CS224W: GNN (YouTube)</a></li>
+                                <li><a href="https://distill.pub/2021/gnn-intro/" target="_blank">A Gentle Introduction
+                                        to GNNs (Distill)</a></li>
+                            </ul>
+                        </div>
+                        <div class="card-example">
+                            <div class="example-header">
+                                <span class="example-badge">📂 Ví dụ từ project</span>
+                                <span class="example-file">src/models/advanced_gnn.py</span>
+                            </div>
+                            <pre><code class="language-python">from torch_geometric.nn import SAGEConv
+
+class MultimodalGraphNet(nn.Module):
+    """
+    End-to-end multimodal GNN.
+    Takes raw text + image + graph structure → 6-class logits.
+    """
+    def __init__(self, fusion_dim=256, hidden_dim=256,
+                 num_classes=6, num_gnn_layers=2, dropout=0.3):
+        super().__init__()
+        # --- GNN layers (GraphSAGE) ---
+        self.gnn_layers = nn.ModuleList()
+        self.gnn_norms = nn.ModuleList()
+        for i in range(num_gnn_layers):
+            in_dim = fusion_dim if i == 0 else hidden_dim
+            self.gnn_layers.append(SAGEConv(in_dim, hidden_dim))
+            self.gnn_norms.append(nn.LayerNorm(hidden_dim))
+
+    def forward(self, h, edge_index):
+        # GNN message passing with residual connections
+        for gnn, norm in zip(self.gnn_layers, self.gnn_norms):
+            h_new = gnn(h, edge_index)
+            h_new = norm(h_new)
+            h_new = F.relu(h_new)
+            h_new = F.dropout(h_new, p=self.dropout,
+                              training=self.training)
+            # Residual connection
+            if h.shape == h_new.shape:
+                h = h + h_new
+            else:
+                h = h_new
+        return self.classifier(h)</code></pre>
+                        </div>
+                    </article>
+
+                    <!-- Hugging Face Transformers -->
+                    <article class="tech-card" id="transformers-card">
+                        <div class="card-header">
+                            <div class="card-icon hf-icon">🤗</div>
+                            <div>
+                                <h3 class="card-title">Hugging Face Transformers</h3>
+                                <span class="card-badge">NLP / Text Encoding</span>
+                            </div>
+                        </div>
+                        <p class="card-desc">Cung cấp pretrained model XLM-RoBERTa để trích xuất đặc trưng văn bản đa
+                            ngôn ngữ. Cùng AutoTokenizer để tokenize text trước khi đưa vào mô hình.</p>
+                        <div class="card-files">
+                            <span class="file-tag">src/models/baselines/text_only.py</span>
+                            <span class="file-tag">src/models/advanced_gnn.py</span>
+                            <span class="file-tag">src/data/text_image_dataset.py</span>
+                        </div>
+                        <div class="card-links">
+                            <h4>📚 Tài liệu học</h4>
+                            <ul>
+                                <li><a href="https://huggingface.co/docs/transformers/index"
+                                        target="_blank">Transformers Documentation</a></li>
+                                <li><a href="https://huggingface.co/learn/nlp-course" target="_blank">Hugging Face NLP
+                                        Course (Free)</a></li>
+                                <li><a href="https://jalammar.github.io/illustrated-transformer/" target="_blank">The
+                                        Illustrated Transformer</a></li>
+                                <li><a href="https://huggingface.co/docs/transformers/model_doc/xlm-roberta"
+                                        target="_blank">XLM-RoBERTa Model Card</a></li>
+                            </ul>
+                        </div>
+                        <div class="card-example">
+                            <div class="example-header">
+                                <span class="example-badge">📂 Ví dụ từ project</span>
+                                <span class="example-file">src/models/baselines/text_only.py</span>
+                            </div>
+                            <pre><code class="language-python">from transformers import AutoModel
+
+class TextOnlyModel(nn.Module):
+    """
+    Text-only baseline using frozen XLM-RoBERTa.
+    Architecture:
+      xlm-roberta-base (frozen) → [CLS] token (768d)
+      → Linear(768, num_classes)
+    """
+    def __init__(self, num_classes=6,
+                 backbone='xlm-roberta-base'):
+        super().__init__()
+        self.backbone = AutoModel.from_pretrained(backbone)
+        # Freeze backbone — chỉ train lớp classifier
+        for param in self.backbone.parameters():
+            param.requires_grad = False
+
+        hidden_size = self.backbone.config.hidden_size  # 768
+        self.classifier = nn.Sequential(
+            nn.Dropout(0.3),
+            nn.Linear(hidden_size, num_classes),
+        )
+
+    def forward(self, input_ids, attention_mask):
+        with torch.no_grad():
+            outputs = self.backbone(
+                input_ids=input_ids,
+                attention_mask=attention_mask
+            )
+        # Lấy [CLS] token (vị trí 0)
+        cls_emb = outputs.last_hidden_state[:, 0, :]
+        return self.classifier(cls_emb)</code></pre>
+                        </div>
+                    </article>
+
+                    <!-- TorchVision -->
+                    <article class="tech-card" id="torchvision-card">
+                        <div class="card-header">
+                            <div class="card-icon tv-icon">👁️</div>
+                            <div>
+                                <h3 class="card-title">TorchVision</h3>
+                                <span class="card-badge">Computer Vision</span>
+                            </div>
+                        </div>
+                        <p class="card-desc">Thư viện xử lý hình ảnh của PyTorch. Cung cấp ResNet-50 pretrained (frozen
+                            backbone) để trích xuất đặc trưng ảnh, cùng các transforms chuẩn hóa ảnh.</p>
+                        <div class="card-files">
+                            <span class="file-tag">src/models/baselines/image_only.py</span>
+                            <span class="file-tag">src/models/advanced_gnn.py</span>
+                            <span class="file-tag">src/data/text_image_dataset.py</span>
+                        </div>
+                        <div class="card-links">
+                            <h4>📚 Tài liệu học</h4>
+                            <ul>
+                                <li><a href="https://pytorch.org/vision/stable/index.html" target="_blank">TorchVision
+                                        Documentation</a></li>
+                                <li><a href="https://pytorch.org/tutorials/beginner/transfer_learning_tutorial.html"
+                                        target="_blank">Transfer Learning Tutorial</a></li>
+                                <li><a href="https://pytorch.org/vision/stable/models.html" target="_blank">Pre-trained
+                                        Models</a></li>
+                            </ul>
+                        </div>
+                        <div class="card-example">
+                            <div class="example-header">
+                                <span class="example-badge">📂 Ví dụ từ project</span>
+                                <span class="example-file">src/models/baselines/image_only.py</span>
+                            </div>
+                            <pre><code class="language-python">from torchvision import models
+
+class ImageOnlyModel(nn.Module):
+    """Frozen ResNet-50 + Linear Classifier."""
+    def __init__(self, num_classes=6):
+        super().__init__()
+        resnet = models.resnet50(
+            weights=models.ResNet50_Weights.IMAGENET1K_V1
+        )
+        # Lấy tất cả layers trừ fc cuối
+        self.features = nn.Sequential(
+            *list(resnet.children())[:-1]
+        )  # output: [B, 2048, 1, 1]
+
+        # Freeze backbone
+        for param in self.features.parameters():
+            param.requires_grad = False
+
+        self.classifier = nn.Sequential(
+            nn.Dropout(0.3),
+            nn.Linear(2048, num_classes),
+        )
+
+    def forward(self, images):
+        with torch.no_grad():
+            features = self.features(images)  # [B, 2048, 1, 1]
+        features = features.flatten(1)  # [B, 2048]
+        return self.classifier(features)</code></pre>
+                        </div>
+                    </article>
+
+                    <!-- OpenCLIP -->
+                    <article class="tech-card" id="openclip-card">
+                        <div class="card-header">
+                            <div class="card-icon clip-icon">🔗</div>
+                            <div>
+                                <h3 class="card-title">OpenCLIP</h3>
+                                <span class="card-badge">Multimodal AI</span>
+                            </div>
+                        </div>
+                        <p class="card-desc">Mô hình contrastive learning giữa text và image. Dùng cho zero-shot
+                            classification trong auto-labeling và trích xuất multimodal embeddings.</p>
+                        <div class="card-files">
+                            <span class="file-tag">src/utils/auto_labeler.py</span>
+                            <span class="file-tag">src/data/fakeddit_preprocessor_image.py</span>
+                        </div>
+                        <div class="card-links">
+                            <h4>📚 Tài liệu học</h4>
+                            <ul>
+                                <li><a href="https://github.com/mlfoundations/open_clip" target="_blank">OpenCLIP GitHub
+                                        Repository</a></li>
+                                <li><a href="https://openai.com/research/clip" target="_blank">CLIP Research Paper
+                                        (OpenAI)</a></li>
+                                <li><a href="https://www.youtube.com/watch?v=T9XSU0pKX2E" target="_blank">CLIP Explained
+                                        (YouTube)</a></li>
+                            </ul>
+                        </div>
+                        <div class="card-example">
+                            <div class="example-header">
+                                <span class="example-badge">📂 Ví dụ từ project</span>
+                                <span class="example-file">src/data/text_image_dataset.py</span>
+                            </div>
+                            <pre><code class="language-python"># CLIP embeddings đã được trính xuất trước
+# và lưu trong graph .pt file dạng node features
+# x = [N, 1280] (768 text_emb + 512 image_emb từ CLIP)
+
+class PrecomputedMultimodalGNN(nn.Module):
+    """
+    Variant works with PRE-COMPUTED embeddings.
+    x = [text_emb || image_emb] from CLIP.
+    """
+    def forward(self, x, edge_index):
+        # Split precomputed CLIP features
+        text_emb = x[:, :self.text_dim]   # [N, 768]
+        image_emb = x[:, self.text_dim:]  # [N, 512]
+
+        # Fusion
+        h = self.fusion(text_emb, image_emb)
+        # GNN message passing...
+        return self.classifier(h)</code></pre>
+                        </div>
+                    </article>
+                </div>
+            </section>
+
+            <!-- ============================================== -->
+            <!-- CATEGORY: DATA PROCESSING -->
+            <!-- ============================================== -->
+            <section class="category-section" id="data" data-category="data">
+                <div class="category-header">
+                    <h2 class="category-title"><span class="category-emoji">📊</span> Data Processing & Analysis</h2>
+                    <p class="category-desc">Thư viện xử lý, làm sạch và phân tích dữ liệu</p>
+                </div>
+
+                <div class="tech-grid">
+                    <!-- Pandas / NumPy -->
+                    <article class="tech-card" id="pandas-card">
+                        <div class="card-header">
+                            <div class="card-icon pandas-icon">🐼</div>
+                            <div>
+                                <h3 class="card-title">Pandas / NumPy / PyArrow</h3>
+                                <span class="card-badge">Data Manipulation</span>
+                            </div>
+                        </div>
+                        <p class="card-desc">Xử lý dữ liệu dạng bảng, tính toán vector, đọc/ghi file JSONL/CSV. Là xương
+                            sống cho toàn bộ data pipeline từ crawl đến tiền xử lý.</p>
+                        <div class="card-files">
+                            <span class="file-tag">src/data/reddit_crawler.py</span>
+                            <span class="file-tag">src/data/fakeddit_process_text.py</span>
+                            <span class="file-tag">src/data/fakeddit_preprocessor_image.py</span>
+                            <span class="file-tag">src/utils/merge_splits.py</span>
+                        </div>
+                        <div class="card-links">
+                            <h4>📚 Tài liệu học</h4>
+                            <ul>
+                                <li><a href="https://pandas.pydata.org/docs/getting_started/intro_tutorials/index.html"
+                                        target="_blank">Pandas Getting Started Tutorials</a></li>
+                                <li><a href="https://numpy.org/doc/stable/user/absolute_beginners.html"
+                                        target="_blank">NumPy for Beginners</a></li>
+                                <li><a href="https://www.kaggle.com/learn/pandas" target="_blank">Kaggle Pandas Course
+                                        (Free)</a></li>
+                            </ul>
+                        </div>
+                        <div class="card-example">
+                            <div class="example-header">
+                                <span class="example-badge">📂 Ví dụ từ project</span>
+                                <span class="example-file">src/data/fakeddit_process_text.py</span>
+                            </div>
+                            <pre><code class="language-python">from sklearn.model_selection import train_test_split
+import numpy as np
+
+def split_dataset(self, records):
+    """Split dataset with stratification by label"""
+    fake_records = [r for r in records
+                    if r.get('label') == 'Fake']
+    true_records = [r for r in records
+                    if r.get('label') == 'True']
+
+    # Use sklearn for proper splitting
+    train, temp = train_test_split(
+        class_records,
+        test_size=(1 - self.train_ratio),
+        random_state=42
+    )
+
+    # Shuffle if numpy available
+    np.random.seed(42)
+    np.random.shuffle(train_set)
+    np.random.shuffle(val_set)
+    np.random.shuffle(test_set)</code></pre>
+                        </div>
+                    </article>
+
+                    <!-- Scikit-Learn -->
+                    <article class="tech-card" id="sklearn-card">
+                        <div class="card-header">
+                            <div class="card-icon sklearn-icon">📐</div>
+                            <div>
+                                <h3 class="card-title">Scikit-Learn</h3>
+                                <span class="card-badge">ML Utilities</span>
+                            </div>
+                        </div>
+                        <p class="card-desc">Dùng cho các tiện ích ML: chia tách dữ liệu (train_test_split), tính
+                            F1-Score, Accuracy, classification_report và confusion_matrix.</p>
+                        <div class="card-files">
+                            <span class="file-tag">src/data/fakeddit_process_text.py</span>
+                            <span class="file-tag">src/training/train_baseline.py</span>
+                            <span class="file-tag">src/training/train_gnn.py</span>
+                        </div>
+                        <div class="card-links">
+                            <h4>📚 Tài liệu học</h4>
+                            <ul>
+                                <li><a href="https://scikit-learn.org/stable/user_guide.html"
+                                        target="_blank">Scikit-Learn User Guide</a></li>
+                                <li><a href="https://scikit-learn.org/stable/modules/model_evaluation.html"
+                                        target="_blank">Model Evaluation Guide</a></li>
+                                <li><a href="https://www.kaggle.com/learn/intro-to-machine-learning"
+                                        target="_blank">Kaggle ML Course (Free)</a></li>
+                            </ul>
+                        </div>
+                        <div class="card-example">
+                            <div class="example-header">
+                                <span class="example-badge">📂 Ví dụ từ project</span>
+                                <span class="example-file">src/data/fakeddit_process_text.py</span>
+                            </div>
+                            <pre><code class="language-python">from sklearn.model_selection import train_test_split
+
+def split_class(class_records):
+    """Stratified split using sklearn"""
+    if len(class_records) < 3:
+        return class_records, [], []
+
+    train, temp = train_test_split(
+        class_records,
+        test_size=(1 - self.train_ratio),
+        random_state=42
+    )
+    if len(temp) >= 2:
+        val_ratio_adjusted = (
+            self.val_ratio / (1 - self.train_ratio)
+        )
+        val, test = train_test_split(
+            temp,
+            test_size=(1 - val_ratio_adjusted),
+            random_state=42
+        )
+    else:
+        val, test = temp, []
+    return train, val, test</code></pre>
+                        </div>
+                    </article>
+
+                    <!-- PIL / Pillow -->
+                    <article class="tech-card" id="pillow-card">
+                        <div class="card-header">
+                            <div class="card-icon pillow-icon">🖼️</div>
+                            <div>
+                                <h3 class="card-title">Pillow (PIL)</h3>
+                                <span class="card-badge">Image Processing</span>
+                            </div>
+                        </div>
+                        <p class="card-desc">Đọc, resize, padding, chuyển đổi mode (RGB) cho hình ảnh. Hỗ trợ download
+                            ảnh từ URL rồi xử lý trước khi đưa vào model ResNet.</p>
+                        <div class="card-files">
+                            <span class="file-tag">src/data/fakeddit_preprocessor_image.py</span>
+                            <span class="file-tag">src/data/text_image_dataset.py</span>
+                        </div>
+                        <div class="card-links">
+                            <h4>📚 Tài liệu học</h4>
+                            <ul>
+                                <li><a href="https://pillow.readthedocs.io/en/stable/" target="_blank">Pillow
+                                        Documentation</a></li>
+                                <li><a href="https://pillow.readthedocs.io/en/stable/handbook/tutorial.html"
+                                        target="_blank">Pillow Tutorial</a></li>
+                                <li><a href="https://realpython.com/image-processing-with-the-python-pillow-library/"
+                                        target="_blank">Real Python: Image Processing with Pillow</a></li>
+                            </ul>
+                        </div>
+                        <div class="card-example">
+                            <div class="example-header">
+                                <span class="example-badge">📂 Ví dụ từ project</span>
+                                <span class="example-file">src/data/fakeddit_preprocessor_image.py</span>
+                            </div>
+                            <pre><code class="language-python">from PIL import Image, ImageFile, ImageOps
+
+def process_image(self, url, post_id, use_padding=True):
+    """Download and process image"""
+    image = self._download_image(url)
+    # Convert to RGB if needed
+    if image.mode != 'RGB':
+        image = image.convert('RGB')
+
+    if use_padding:
+        # Resize keeping aspect ratio
+        image.thumbnail(self.target_size,
+                        Image.Resampling.LANCZOS)
+        # Create new image with padding color
+        new_image = Image.new('RGB', self.target_size,
+                              self.padding_color)
+        # Paste resized image in center
+        paste_x = (self.target_size[0] - image.width) // 2
+        paste_y = (self.target_size[1] - image.height) // 2
+        new_image.paste(image, (paste_x, paste_y))
+    else:
+        # Center crop
+        processed_image = ImageOps.fit(
+            image, self.target_size,
+            method=Image.Resampling.LANCZOS
+        )
+    processed_image.save(save_path, "JPEG", quality=85)</code></pre>
+                        </div>
+                    </article>
+
+                    <!-- Matplotlib -->
+                    <article class="tech-card" id="matplotlib-card">
+                        <div class="card-header">
+                            <div class="card-icon mpl-icon">📈</div>
+                            <div>
+                                <h3 class="card-title">Matplotlib</h3>
+                                <span class="card-badge">Visualization</span>
+                            </div>
+                        </div>
+                        <p class="card-desc">Vẽ biểu đồ kết quả training, confusion matrix, so sánh performance giữa các
+                            model và trực quan hóa dữ liệu.</p>
+                        <div class="card-files">
+                            <span class="file-tag">src/experiments/visualize_results.py</span>
+                            <span class="file-tag">notebooks/</span>
+                        </div>
+                        <div class="card-links">
+                            <h4>📚 Tài liệu học</h4>
+                            <ul>
+                                <li><a href="https://matplotlib.org/stable/tutorials/index.html"
+                                        target="_blank">Matplotlib Tutorials</a></li>
+                                <li><a href="https://matplotlib.org/stable/gallery/index.html"
+                                        target="_blank">Matplotlib Gallery (Ví dụ)</a></li>
+                                <li><a href="https://realpython.com/python-matplotlib-guide/" target="_blank">Real
+                                        Python: Matplotlib Guide</a></li>
+                            </ul>
+                        </div>
+                        <div class="card-example">
+                            <div class="example-header">
+                                <span class="example-badge">📂 Ví dụ từ project</span>
+                                <span class="example-file">environment.yml</span>
+                            </div>
+                            <pre><code class="language-yaml"># environment.yml — Conda config
+dependencies:
+  # Data Processing & Analysis
+  - pandas
+  - numpy
+  - scikit-learn
+  - matplotlib    # ← Vẽ biểu đồ kết quả</code></pre>
+                        </div>
+                    </article>
+                </div>
+            </section>
+
+            <!-- ============================================== -->
+            <!-- CATEGORY: WEB & DASHBOARD -->
+            <!-- ============================================== -->
+            <section class="category-section" id="web" data-category="web">
+                <div class="category-header">
+                    <h2 class="category-title"><span class="category-emoji">🌐</span> Web & Dashboard</h2>
+                    <p class="category-desc">Hệ thống dashboard quản trị dùng để theo dõi pipeline và huấn luyện mô hình
+                    </p>
+                </div>
+
+                <div class="tech-grid">
+                    <!-- Flask -->
+                    <article class="tech-card" id="flask-card">
+                        <div class="card-header">
+                            <div class="card-icon flask-icon">🧪</div>
+                            <div>
+                                <h3 class="card-title">Flask</h3>
+                                <span class="card-badge">Backend API</span>
+                            </div>
+                        </div>
+                        <p class="card-desc">Micro-framework Python cho REST API backend. Cung cấp endpoints để khởi
+                            chạy crawler, pipeline xử lý, huấn luyện mô hình và streaming log qua SSE (Server-Sent
+                            Events).</p>
+                        <div class="card-files">
+                            <span class="file-tag">demo-website/app.py</span>
+                            <span class="file-tag">demo-website/run_history.py</span>
+                        </div>
+                        <div class="card-links">
+                            <h4>📚 Tài liệu học</h4>
+                            <ul>
+                                <li><a href="https://flask.palletsprojects.com/en/3.0.x/" target="_blank">Flask Official
+                                        Documentation</a></li>
+                                <li><a href="https://flask.palletsprojects.com/en/3.0.x/quickstart/"
+                                        target="_blank">Flask Quickstart Tutorial</a></li>
+                                <li><a href="https://blog.miguelgrinberg.com/post/the-flask-mega-tutorial-part-i-hello-world"
+                                        target="_blank">Flask Mega-Tutorial (Blog)</a></li>
+                                <li><a href="https://www.youtube.com/watch?v=Z1RJmh_OqeA" target="_blank">Flask Full
+                                        Course (freeCodeCamp)</a></li>
+                            </ul>
+                        </div>
+                        <div class="card-example">
+                            <div class="example-header">
+                                <span class="example-badge">📂 Ví dụ từ project</span>
+                                <span class="example-file">demo-website/app.py</span>
+                            </div>
+                            <pre><code class="language-python">from flask import Flask, request, jsonify, Response
+
+app = Flask(__name__, static_folder=".", static_url_path="")
+
+@app.route("/api/train/start", methods=["POST"])
+def start_training():
+    """Start a training run via REST API."""
+    data = request.json or {}
+    model_type = data.get("model_type", "text")
+    epochs = data.get("epochs", 20)
+    lr = data.get("lr", 2e-4)
+
+    if model_type in ("text", "image", "fusion"):
+        script = os.path.join(PROJECT_ROOT,
+            "src", "training", "train_baseline.py")
+        args = ["--model_type", model_type,
+                "--epochs", str(epochs),
+                "--lr", str(lr)]
+    elif model_type == "multimodal":
+        script = os.path.join(PROJECT_ROOT,
+            "src", "training", "train_multimodal_gnn.py")
+        fusion_type = data.get("fusion_type",
+                               "cross_attention")
+        args = ["--fusion_type", fusion_type]
+
+    task_id = launch_script(task_type, script, args)
+    return jsonify({"task_id": task_id, "status": "started"})
+
+@app.route("/api/stream/&lt;task_id&gt;")
+def stream_log(task_id):
+    """SSE endpoint for real-time log streaming."""
+    def generate():
+        for line in active_tasks[task_id]["log"]:
+            yield f"data: {json.dumps({'line': line})}\\n\\n"
+    return Response(generate(),
+                    mimetype="text/event-stream")</code></pre>
+                        </div>
+                    </article>
+
+                    <!-- SQLite -->
+                    <article class="tech-card" id="sqlite-card">
+                        <div class="card-header">
+                            <div class="card-icon sqlite-icon">🗄️</div>
+                            <div>
+                                <h3 class="card-title">SQLite</h3>
+                                <span class="card-badge">Database</span>
+                            </div>
+                        </div>
+                        <p class="card-desc">Cơ sở dữ liệu nhúng nhẹ lưu trữ lịch sử các lần chạy huấn luyện (training
+                            runs), log và metrics trên dashboard mà không cần server DB riêng.</p>
+                        <div class="card-files">
+                            <span class="file-tag">demo-website/run_history.py</span>
+                            <span class="file-tag">demo-website/training_runs.db</span>
+                        </div>
+                        <div class="card-links">
+                            <h4>📚 Tài liệu học</h4>
+                            <ul>
+                                <li><a href="https://docs.python.org/3/library/sqlite3.html" target="_blank">Python
+                                        sqlite3 Module Docs</a></li>
+                                <li><a href="https://www.sqlitetutorial.net/" target="_blank">SQLite Tutorial</a></li>
+                                <li><a href="https://realpython.com/python-sql-libraries/" target="_blank">Real Python:
+                                        SQL Libraries</a></li>
+                            </ul>
+                        </div>
+                        <div class="card-example">
+                            <div class="example-header">
+                                <span class="example-badge">📂 Ví dụ từ project</span>
+                                <span class="example-file">demo-website/app.py</span>
+                            </div>
+                            <pre><code class="language-python">import run_history
+
+# Khi bắt đầu một task mới
+run_history.create_run(task_id, task_type, params)
+
+# Khi task hoàn thành, lưu metrics vào DB
+run_history.finish_run(
+    task_id,
+    status="completed",
+    metrics=metrics  # {"test_acc_6": 0.35, "test_f1": 0.19}
+)
+
+# API trả về lịch sử training runs
+@app.route("/api/runs")
+def list_runs():
+    runs = run_history.get_all_runs()  # SELECT * FROM runs
+    return jsonify(runs)
+
+# API lấy best metrics cho dashboard charts
+@app.route("/api/metrics/best")
+def get_best_metrics():
+    runs = run_history.get_all_runs()
+    # Tìm F1/Accuracy cao nhất theo model type...
+    return jsonify(best_stats)</code></pre>
+                        </div>
+                    </article>
+                </div>
+            </section>
+
+            <!-- ============================================== -->
+            <!-- CATEGORY: MLOps & DevOps -->
+            <!-- ============================================== -->
+            <section class="category-section" id="mlops" data-category="mlops">
+                <div class="category-header">
+                    <h2 class="category-title"><span class="category-emoji">⚙️</span> MLOps & DevOps</h2>
+                    <p class="category-desc">Công cụ quản lý phiên bản dữ liệu, containerization và gán nhãn</p>
+                </div>
+
+                <div class="tech-grid">
+                    <!-- DVC -->
+                    <article class="tech-card" id="dvc-card">
+                        <div class="card-header">
+                            <div class="card-icon dvc-icon">📦</div>
+                            <div>
+                                <h3 class="card-title">DVC (Data Version Control)</h3>
+                                <span class="card-badge">Data Versioning</span>
+                            </div>
+                        </div>
+                        <p class="card-desc">Quản lý phiên bản cho datasets lớn và model checkpoints. Kết hợp với Git để
+                            track metadata trong khi dữ liệu thực tế được lưu trên remote storage (Google
+                            Drive/DagsHub).</p>
+                        <div class="card-files">
+                            <span class="file-tag">dvc.yaml</span>
+                            <span class="file-tag">.dvc/</span>
+                            <span class="file-tag">.dvcignore</span>
+                        </div>
+                        <div class="card-links">
+                            <h4>📚 Tài liệu học</h4>
+                            <ul>
+                                <li><a href="https://dvc.org/doc" target="_blank">DVC Official Documentation</a></li>
+                                <li><a href="https://dvc.org/doc/start" target="_blank">DVC Getting Started</a></li>
+                                <li><a href="https://www.youtube.com/watch?v=kLKBcPonMYw" target="_blank">DVC Tutorial
+                                        (YouTube)</a></li>
+                                <li><a href="https://dagshub.com/docs/" target="_blank">DagsHub with DVC</a></li>
+                            </ul>
+                        </div>
+                        <div class="card-example">
+                            <div class="example-header">
+                                <span class="example-badge">📂 Ví dụ từ project</span>
+                                <span class="example-file">requirements_rest.txt & dvc.yaml</span>
+                            </div>
+                            <pre><code class="language-yaml"># requirements_rest.txt
+dvc        # Data Version Control tool
+dagshub    # DVC remote storage platform
+
+# dvc.yaml — Pipeline stages (đang chờ thiết lập)
+stages: {}
+
+# Workflow thực tế:
+# dvc add data/02_processed/dataset_output.jsonl
+# dvc add data/02_processed/images/Fakeddit_batch/
+# git add *.dvc .gitignore
+# git commit -m 'Add processed data batch'
+# dvc push  ← Đẩy data lên Google Drive/DagsHub</code></pre>
+                        </div>
+                    </article>
+
+                    <!-- Docker -->
+                    <article class="tech-card" id="docker-card">
+                        <div class="card-header">
+                            <div class="card-icon docker-icon">🐳</div>
+                            <div>
+                                <h3 class="card-title">Docker & Docker Compose</h3>
+                                <span class="card-badge">Containerization</span>
+                            </div>
+                        </div>
+                        <p class="card-desc">Ảo hóa container để chạy Label Studio một cách isolated. Docker Compose
+                            quản lý volume mount và biến môi trường cho labeling service.</p>
+                        <div class="card-files">
+                            <span class="file-tag">docker-compose.yml</span>
+                        </div>
+                        <div class="card-links">
+                            <h4>📚 Tài liệu học</h4>
+                            <ul>
+                                <li><a href="https://docs.docker.com/get-started/" target="_blank">Docker Getting
+                                        Started</a></li>
+                                <li><a href="https://docs.docker.com/compose/" target="_blank">Docker Compose
+                                        Documentation</a></li>
+                                <li><a href="https://www.youtube.com/watch?v=pTFZFxd4hOI" target="_blank">Docker in 100
+                                        Seconds (Fireship)</a></li>
+                                <li><a href="https://www.youtube.com/watch?v=3c-iBn73dDE" target="_blank">Docker Full
+                                        Tutorial (TechWorld)</a></li>
+                            </ul>
+                        </div>
+                        <div class="card-example">
+                            <div class="example-header">
+                                <span class="example-badge">📂 Ví dụ từ project</span>
+                                <span class="example-file">docker-compose.yml</span>
+                            </div>
+                            <pre><code class="language-yaml">version: '3'
+services:
+  label-studio:
+    image: heartexlabs/label-studio:latest
+    container_name: label-studio
+    ports:
+      - "8080:8080"
+    volumes:
+      # Mount entire project directory
+      - .:/label-studio/project
+      # Mount Label Studio data (database & persistence)
+      - ./labels_storage:/label-studio/data
+    environment:
+      - LABEL_STUDIO_LOCAL_FILES_SERVING_ENABLED=true
+      - LABEL_STUDIO_LOCAL_FILES_DOCUMENT_ROOT=
+          /label-studio/project
+    restart: unless-stopped</code></pre>
+                        </div>
+                    </article>
+
+                    <!-- Label Studio -->
+                    <article class="tech-card" id="labelstudio-card">
+                        <div class="card-header">
+                            <div class="card-icon ls-icon">🏷️</div>
+                            <div>
+                                <h3 class="card-title">Label Studio</h3>
+                                <span class="card-badge">Data Labeling</span>
+                            </div>
+                        </div>
+                        <p class="card-desc">Nền tảng gán nhãn dữ liệu open-source. Cho phép gán nhãn text/image thủ
+                            công, review kết quả auto-labeling và export sang định dạng chuẩn cho training.</p>
+                        <div class="card-files">
+                            <span class="file-tag">docker-compose.yml</span>
+                            <span class="file-tag">labels_storage/</span>
+                            <span class="file-tag">src/utils/convert_ls_export_to_jsonl.py</span>
+                        </div>
+                        <div class="card-links">
+                            <h4>📚 Tài liệu học</h4>
+                            <ul>
+                                <li><a href="https://labelstud.io/guide/" target="_blank">Label Studio Guide</a></li>
+                                <li><a href="https://labelstud.io/templates/" target="_blank">Labeling Templates</a>
+                                </li>
+                                <li><a href="https://www.youtube.com/watch?v=QntWbkKHsrc" target="_blank">Label Studio
+                                        Tutorial (YouTube)</a></li>
+                            </ul>
+                        </div>
+                        <div class="card-example">
+                            <div class="example-header">
+                                <span class="example-badge">📂 Ví dụ từ project</span>
+                                <span class="example-file">demo-website/app.py</span>
+                            </div>
+                            <pre><code class="language-python"># API để chuyển đổi Label Studio JSON export
+# sang JSONL cho training
+@app.route("/api/convert-ls/start", methods=["POST"])
+def start_convert_ls():
+    """Convert Label Studio JSON export to JSONL."""
+    data = request.json or {}
+    input_file = data.get("input", "")
+    merge_master = data.get("merge_master", False)
+    script = os.path.join(PROJECT_ROOT,
+        "src", "utils", "convert_ls_export_to_jsonl.py")
+    args = ["--input", input_file]
+    if merge_master:
+        args.append("--merge-master")
+    task_id = launch_script("convert_ls", script, args)
+    return jsonify({"task_id": task_id, "status": "started"})
+
+# Scan Label Studio export files
+@app.route("/api/ls-exports")
+def list_ls_exports():
+    """Scan project for LS export JSON files."""
+    patterns = [
+        "data/03_clean/**/export_*.json",
+        "labels_storage/export/*.json",
+    ]
+    # ... glob and return file list</code></pre>
+                        </div>
+                    </article>
+
+                    <!-- Conda -->
+                    <article class="tech-card" id="conda-card">
+                        <div class="card-header">
+                            <div class="card-icon conda-icon">🐍</div>
+                            <div>
+                                <h3 class="card-title">Conda Environment</h3>
+                                <span class="card-badge">Environment Manager</span>
+                            </div>
+                        </div>
+                        <p class="card-desc">Quản lý môi trường ảo Python với tất cả dependencies. Đảm bảo tính nhất
+                            quán giữa các máy phát triển và cho phép dễ dàng reproduce kết quả.</p>
+                        <div class="card-files">
+                            <span class="file-tag">environment.yml</span>
+                            <span class="file-tag">requirements_rest.txt</span>
+                        </div>
+                        <div class="card-links">
+                            <h4>📚 Tài liệu học</h4>
+                            <ul>
+                                <li><a href="https://docs.conda.io/projects/conda/en/latest/user-guide/getting-started.html"
+                                        target="_blank">Conda Getting Started</a></li>
+                                <li><a href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html"
+                                        target="_blank">Managing Environments</a></li>
+                                <li><a href="https://conda.io/projects/conda/en/latest/user-guide/cheatsheet.html"
+                                        target="_blank">Conda Cheat Sheet</a></li>
+                            </ul>
+                        </div>
+                        <div class="card-example">
+                            <div class="example-header">
+                                <span class="example-badge">📂 Ví dụ từ project</span>
+                                <span class="example-file">environment.yml</span>
+                            </div>
+                            <pre><code class="language-yaml">name: multimodal_gnn
+channels:
+  - defaults
+  - pytorch
+  - pyg
+dependencies:
+  - python=3.10
+  # Deep Learning Framework
+  - pytorch
+  - torchvision
+  - torchaudio
+  - cpuonly      # Hoặc cudatoolkit nếu có GPU
+  # Graph Neural Network
+  - pytorch-geometric  # Channel 'pyg'
+  # Data Processing & Analysis
+  - pandas
+  - numpy
+  - scikit-learn
+  - matplotlib
+  # Computer Vision & Media
+  - opencv
+  - pillow
+  # Pip packages
+  - pip:
+    - transformers     # HuggingFace cho BERT
+    - openclip-torch   # Multimodal embeddings
+    - label-studio     # Công cụ gán nhãn</code></pre>
+                        </div>
+                    </article>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <p>📘 Tài liệu tham khảo dự án NCKH — <strong>Fake News Detection with Multimodal GNN</strong></p>
+                <p class="footer-sub">Tổng hợp <span id="tech-count">14</span> công nghệ · Cập nhật 03/2026</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Back to top -->
+    <button class="back-to-top" id="backToTop" title="Lên đầu trang">↑</button>
+
+    <script src="script.js"></script>
+</body>
+
+</html>

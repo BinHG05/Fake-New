@@ -1,0 +1,11 @@
+{
+  "epochs": 1,
+  "best_val_score": -Infinity,
+  "history": [
+    {
+      "epoch": 1,
+      "train_loss": 0.2631,
+      "val_metrics": {}
+    }
+  ]
+}

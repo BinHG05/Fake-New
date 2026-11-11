@@ -58,7 +58,15 @@ data/**
 *.gz
 *.xz
 
-# Nếu bạn cần giữ 1 file json → sửa lại thủ công
+# Nếu bạn cần giữ file metrics / config / sample json:
+!configs/*.yaml
+!configs/*.yml
+!configs/*.json
+!artifacts/metrics/*.json
+!artifacts/figures/*.png
+!demo/sample_batch.jsonl
+!tests/fixtures/*
+!data/manifests/*.json
 
 # =========================================
 # LOGGING & TEMP
@@ -73,6 +81,9 @@ cache/
 # =========================================
 # SECRETS / KEYS
 # =========================================
+.local_credentials/
+service-account.json
+*.service-account*.json
 kaggle.json
 *.key
 *.pem

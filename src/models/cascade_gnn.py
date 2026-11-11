@@ -29,7 +29,7 @@ class MultiModalFakeNewsGNN(nn.Module):
         self,
         input_dim: int = 1280,  # 768 (text) + 512 (image)
         hidden_dim: int = 256,
-        num_classes: int = 6,
+        num_classes: int = 2,
         num_layers: int = 2,
         dropout: float = 0.3,
         gnn_type: str = 'gat',  # 'gat', 'sage', or 'gcn'
@@ -174,7 +174,7 @@ class MultiModalFakeNewsGNN(nn.Module):
 def create_model(
     input_dim: int = 1280,
     hidden_dim: int = 256,
-    num_classes: int = 6,
+        num_classes: int = 2,
     gnn_type: str = 'gat'
 ) -> MultiModalFakeNewsGNN:
     """
