@@ -33,8 +33,15 @@ import sys
 import argparse
 import time
 import base64
+import re
 from pathlib import Path
 from datetime import datetime
+
+# Fix Windows console encoding (cp1252 can't handle emoji)
+if sys.stdout.encoding != 'utf-8':
+    sys.stdout = open(sys.stdout.fileno(), mode='w', encoding='utf-8', errors='replace', buffering=1)
+if sys.stderr.encoding != 'utf-8':
+    sys.stderr = open(sys.stderr.fileno(), mode='w', encoding='utf-8', errors='replace', buffering=1)
 
 # Add project root to path
 project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -371,24 +378,37 @@ Respond ONLY with valid JSON:
 
     def __init__(self, model_name=None, device="auto"):
         """Initialize Groq API client."""
-        # Load API key
-        self.api_key = os.environ.get("GROQ_API_KEY", "")
-        if not self.api_key:
-            env_file = os.path.join(project_root, ".env")
-            if os.path.exists(env_file):
-                with open(env_file, "r") as f:
-                    for line in f:
-                        if line.startswith("GROQ_API_KEY="):
-                            self.api_key = line.strip().split("=", 1)[1]
-                            break
+        # Load API keys (Support multiple keys in .env, either comma-separated or multi-line)
+        raw_keys = ""
+        env_file = os.path.join(project_root, ".env")
+        
+        if os.path.exists(env_file):
+            with open(env_file, "r", encoding="utf-8") as f:
+                content = f.read()
+                # Find GROQ_API_KEY= and grab everything until the next variable or end of file
+                match = re.search(r"GROQ_API_KEY\s*=\s*([^#\n]+(?:(?:\n|,\s*)[^#\n=]+)*)", content)
+                if match:
+                    raw_keys = match.group(1).strip()
+        
+        # Fallback to system environment if .env didn't have it
+        if not raw_keys:
+            raw_keys = os.environ.get("GROQ_API_KEY", "")
 
-        if not self.api_key:
-            print("❌ GROQ_API_KEY not found! Set in .env or environment variable.")
+        # Split by comma OR newline to support both formats
+        self.api_keys = []
+        for segment in re.split(r'[,\n]', raw_keys):
+            clean_key = segment.strip().strip('"').strip("'")
+            if clean_key and clean_key.startswith("gsk_"):
+                self.api_keys.append(clean_key)
+
+        if not self.api_keys:
+            print("❌ GROQ_API_KEY not found! Set in .env (Example: GROQ_API_KEY=key1,key2...)")
             sys.exit(1)
 
+        self.current_key_idx = 0
         self.model_name = model_name or "meta-llama/llama-4-scout-17b-16e-instruct"
         self.api_url = "https://api.groq.com/openai/v1/chat/completions"
-        print(f"✅ Groq API ready | Model: {self.model_name}")
+        print(f"✅ Groq API ready | {len(self.api_keys)} keys detected in .env | Model: {self.model_name}")
 
     def _encode_image(self, image_path):
         """Encode image to base64 data URL."""
@@ -435,38 +455,67 @@ Respond ONLY with valid JSON:
             "max_tokens": 200,
         }
 
-        headers = {
-            "Authorization": f"Bearer {self.api_key}",
-            "Content-Type": "application/json",
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
-        }
+        consecutive_429s = 0
+        other_errors = 0
+        max_other_errors = 3
+        
+        while True:
+            current_key = self.api_keys[self.current_key_idx]
+            
+            headers = {
+                "Authorization": f"Bearer {current_key}",
+                "Content-Type": "application/json",
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
+            }
 
-        try:
-            req = urllib.request.Request(
-                self.api_url,
-                data=json.dumps(payload).encode("utf-8"),
-                headers=headers,
-                method="POST"
-            )
-            with urllib.request.urlopen(req, timeout=60) as resp:
-                result = json.loads(resp.read().decode("utf-8"))
+            try:
+                req = urllib.request.Request(
+                    self.api_url,
+                    data=json.dumps(payload).encode("utf-8"),
+                    headers=headers,
+                    method="POST"
+                )
+                with urllib.request.urlopen(req, timeout=60) as resp:
+                    result = json.loads(resp.read().decode("utf-8"))
 
-            reply = result["choices"][0]["message"]["content"].strip()
+                reply = result["choices"][0]["message"]["content"].strip()
 
-            # Parse JSON from response
-            parsed = self._parse_response(reply, mode)
-            parsed["used_image"] = used_image
-            return parsed
+                # Parse JSON from response
+                parsed = self._parse_response(reply, mode)
+                parsed["used_image"] = used_image
+                
+                # Reset 429 counter on success
+                consecutive_429s = 0
+                return parsed
 
-        except urllib.error.HTTPError as e:
-            error_body = e.read().decode('utf-8', errors='replace') if hasattr(e, 'read') else ''
-            print(f"  ❌ Groq API error {e.code}: {error_body[:200]}")
-            return {"label": "Unlabeled", "confidence": 0.0,
-                    "all_scores": {}, "used_image": False}
-        except Exception as e:
-            print(f"  ❌ Groq API error: {e}")
-            return {"label": "Unlabeled", "confidence": 0.0,
-                    "all_scores": {}, "used_image": False}
+            except urllib.error.HTTPError as e:
+                error_body = e.read().decode('utf-8', errors='replace') if hasattr(e, 'read') else ''
+                
+                if str(e.code) == "429" or e.code == 429:
+                    consecutive_429s += 1
+                    self.current_key_idx = (self.current_key_idx + 1) % len(self.api_keys)
+                    
+                    if consecutive_429s >= len(self.api_keys):
+                        print(f"\n  ⚠️ Toàn bộ {len(self.api_keys)} API Key đều bị limit! Tạm nghỉ 5 phút...")
+                        time.sleep(300)  # 5 minutes
+                        consecutive_429s = 0  # Reset to try again
+                    else:
+                        print(f"\n  🔄 Key {self.current_key_idx} bị limit. Đổi sang Key {self.current_key_idx + 1}/{len(self.api_keys)}...")
+                        time.sleep(1)
+                    continue
+                
+                other_errors += 1
+                if other_errors >= max_other_errors:
+                    print(f"  ❌ Groq API error {e.code}: {error_body[:200]}")
+                    return {"label": "Unlabeled", "confidence": 0.0, "all_scores": {}, "used_image": False}
+                time.sleep(2)
+                
+            except Exception as e:
+                other_errors += 1
+                if other_errors >= max_other_errors:
+                    print(f"  ❌ Groq API error: {e}")
+                    return {"label": "Unlabeled", "confidence": 0.0, "all_scores": {}, "used_image": False}
+                time.sleep(2)
 
     def _parse_response(self, reply, mode):
         """Parse LLM JSON response."""
@@ -634,21 +683,54 @@ def process_jsonl(
             continue
         records_to_process.append(record)
 
-    # Giới hạn số lượng nếu có tham số limit
-    if limit:
-        records_to_process = records_to_process[:limit]
-        print(f"🎯 Sẽ xử lý {len(records_to_process)} dòng chưa có nhãn (limit={limit})")
+    # Giới hạn số lượng (Hỗ trợ cả chuỗi "All" hoặc số 0 để chạy hết)
+    if limit and str(limit).lower() != "all" and int(limit) > 0:
+        limit_val = int(limit)
+        records_to_process = records_to_process[:limit_val]
+        print(f"🎯 Sẽ xử lý {len(records_to_process)} dòng chưa có nhãn (limit={limit_val})")
+    else:
+        print(f"🎯 Sẽ xử lý TOÀN BỘ {len(records_to_process)} dòng chưa có nhãn")
+
+    # Determine output path early so real-time saves work
+    if output_path is not None:
+        final_output_path = str(output_path)
+    else:
+        final_output_path = str(output_file)
 
     for record in tqdm(records_to_process, desc="🤖 Auto-labeling", total=len(records_to_process)):
-
+        rec_id = record.get("id", "no-id")
         text = record.get("clean_text", "") or record.get("raw_text", "")
         image_path = resolve_image_path(record, project_root)
 
-        # Classify
-        result = classifier.classify(text, image_path, mode)
+        # print(f"  🔍 Processing record: {rec_id}") # Debug line
 
-        if result.get("used_image"):
-            image_used_count += 1
+        # Retry until this record gets a real label (max 20 attempts for local methods)
+        record_attempts = 0
+        max_attempts = 20
+        while True:
+            result = classifier.classify(text, image_path, mode)
+
+            if result.get("used_image"):
+                image_used_count += 1
+
+            # Check if we got a real label
+            if result["label"] != "Unlabeled" and result["confidence"] > 0:
+                break  # Success — got a real label
+
+            # Failed — retry after cooldown
+            record_attempts += 1
+
+            # If exceeded max attempts, force assign and move on
+            if record_attempts >= max_attempts:
+                print(f"\n  ⚠️ Bài {rec_id} thử {max_attempts} lần vẫn thất bại. Bỏ qua (gán Unlabeled).")
+                result = {"label": "Unlabeled", "confidence": 0.0, "all_scores": {}, "used_image": False}
+                break
+
+            if record_attempts % 3 == 0:
+                print(f"\n  ⏳ Bài này đã thử {record_attempts} lần. Nghỉ 30s rồi thử lại...")
+                time.sleep(30)
+            else:
+                time.sleep(2)
 
         if result["confidence"] >= threshold:
             record["label"] = result["label"]
@@ -661,6 +743,7 @@ def process_jsonl(
             record["auto_label_timestamp"] = datetime.now().strftime("%Y%m%d_%H%M%S")
             labeled_count += 1
         else:
+            record["label"] = result["label"]  # Still assign the label even if below threshold
             record["auto_label"] = True
             record["auto_label_confidence"] = result["confidence"]
             record["auto_label_scores"] = result["all_scores"]
@@ -670,16 +753,21 @@ def process_jsonl(
             record["auto_label_timestamp"] = datetime.now().strftime("%Y%m%d_%H%M%S")
             below_threshold += 1
 
+        # Small delay for Groq to avoid rate limits
+        if method == "groq":
+            time.sleep(0.5)
+
+        # Real-time save after EVERY record to ensure no data loss and visibility
+        with open(final_output_path, "w", encoding="utf-8") as f:
+            for r in records:
+                f.write(json.dumps(r, ensure_ascii=False) + "\n")
+
         # Label Studio predictions
         if ls_predictions:
             ls_pred = build_ls_prediction(record, result, mode)
             if ls_pred:
                 ls_prediction_data.append(ls_pred)
 
-    if output_path is not None:
-        final_output_path = str(output_path)
-    else:
-        final_output_path = str(output_file)
 
     # Write JSONL
     with open(final_output_path, "w", encoding="utf-8") as f:

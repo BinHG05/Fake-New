@@ -51,12 +51,12 @@ class TextEmbeddingExtractor:
         
         from transformers import AutoModel, AutoTokenizer
         
-        print(f"📥 Loading text model: {self.model_name}")
+        print(f"Loading text model: {self.model_name}")
         self._tokenizer = AutoTokenizer.from_pretrained(self.model_name)
         self._model = AutoModel.from_pretrained(self.model_name)
         self._model = self._model.to(self.device)
         self._model.eval()
-        print(f"✓ Text model loaded on {self.device}")
+        print(f"Text model loaded on {self.device}")
     
     @property
     def embedding_dim(self) -> int:
@@ -181,12 +181,12 @@ class ImageEmbeddingExtractor:
         
         from transformers import CLIPModel, CLIPProcessor
         
-        print(f"📥 Loading image model: {self.model_name}")
+        print(f"Loading image model: {self.model_name}")
         self._processor = CLIPProcessor.from_pretrained(self.model_name)
         self._model = CLIPModel.from_pretrained(self.model_name)
         self._model = self._model.to(self.device)
         self._model.eval()
-        print(f"✓ Image model loaded on {self.device}")
+        print(f"Image model loaded on {self.device}")
     
     @property
     def embedding_dim(self) -> int:

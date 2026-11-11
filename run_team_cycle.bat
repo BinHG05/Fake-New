@@ -22,7 +22,7 @@ echo [2] Prepare Reddit batch for Label Studio
 echo [3] Merge Label Studio export into master
 echo [4] Enrich labeled data with comment tree
 echo [5] Build graphs
-echo [6] Train model
+echo [6] Train  odel
 echo [0] Exit
 echo ============================================================
 set /p CHOICE=Chon phase can chay: 

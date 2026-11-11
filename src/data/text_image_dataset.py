@@ -146,7 +146,13 @@ class FakedditTextImageDataset(Dataset):
     def tokenizer(self):
         if self._tokenizer is None:
             from transformers import AutoTokenizer
-            self._tokenizer = AutoTokenizer.from_pretrained(self._tokenizer_name)
+            try:
+                self._tokenizer = AutoTokenizer.from_pretrained(
+                    self._tokenizer_name,
+                    local_files_only=True,
+                )
+            except Exception:
+                self._tokenizer = AutoTokenizer.from_pretrained(self._tokenizer_name)
         return self._tokenizer
 
     # ----------------------------------------------------------

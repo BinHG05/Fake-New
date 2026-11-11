@@ -35,6 +35,8 @@ def build_binary_view(input_path: Path, output_path: Path, replace_label: bool =
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
+    skipped = 0
+
     with input_path.open("r", encoding="utf-8") as f_in, output_path.open("w", encoding="utf-8") as f_out:
         for line_number, line in enumerate(f_in, start=1):
             line = line.strip()
@@ -44,7 +46,12 @@ def build_binary_view(input_path: Path, output_path: Path, replace_label: bool =
             record = json.loads(line)
             total += 1
 
-            binary_label, strategy = derive_binary_label(record)
+            try:
+                binary_label, strategy = derive_binary_label(record)
+            except ValueError:
+                skipped += 1
+                continue
+
             record["label_binary"] = binary_label
             record["label_binary_source"] = strategy
 
@@ -64,8 +71,9 @@ def build_binary_view(input_path: Path, output_path: Path, replace_label: bool =
     print("BINARY VIEW BUILD COMPLETE")
     print("=" * 60)
     print(f"Input:   {input_path}")
-    print(f"Output:  {output_path}")
     print(f"Total:   {total}")
+    print(f"Skipped: {skipped} (unlabeled)")
+    print(f"Output:  {total - skipped} records")
     print(f"Sources: {dict(source_counter)}")
     print(f"Binary:  {dict(binary_counter)}")
     print(f"Rules:   {dict(strategy_counter)}")

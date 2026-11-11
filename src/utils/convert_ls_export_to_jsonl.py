@@ -52,7 +52,7 @@ def convert_ls_export_to_jsonl(input_path, output_path, append=False):
                 
                 for r in result:
                     # Tìm nhãn (hỗ trợ nhiều tên commonly used)
-                    if r.get('from_name') in ['label', 'label_fine', 'choice']:
+                    if r.get('from_name') in ['label', 'label_binary', 'label_fine', 'choice']:
                         choices = r.get('value', {}).get('choices', [])
                         if choices:
                             ls_label = choices[0]

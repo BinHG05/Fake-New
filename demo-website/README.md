@@ -1,154 +1,118 @@
-# 🧪 Fake News Detection — Web Demo
+# Huong dan su dung Web Demo
 
-Dashboard trực quan để chạy toàn bộ pipeline phát hiện tin giả: từ thu thập dữ liệu, xử lý, đến huấn luyện model.
+Tai lieu nay mo ta cach chay va cach dung `demo-website` bang tieng Viet, gon va dung cho nhu cau demo.
 
----
+## 1. Cach mo Web Demo
 
-## 🚀 Hướng dẫn cài đặt
+Tu thu muc goc project:
 
-### Bước 1: Clone repo
-
-```bash
-git clone https://github.com/<your-org>/Fake-New.git
-cd Fake-New
-```
-
-### Bước 2: Tạo môi trường Conda
-
-```bash
-conda env create -f environment.yml
-conda activate multimodal_gnn
-```
-
-Cài thêm Flask (chưa có trong `environment.yml`):
-
-```bash
-pip install flask
-```
-
-### Bước 3: Giải nén dữ liệu
-
-Tải file dữ liệu từ Google Drive (link được gửi trong nhóm) và giải nén **vào thư mục gốc** của project:
-
-```bash
-# Giải nén file ZIP vào đúng thư mục project
-# Ví dụ: unzip fakenews_data_minimal_20260309.zip -d .
-# Trên Windows: Click phải → Extract Here
-```
-
-Sau khi giải nén, cấu trúc thư mục phải giống như sau:
-
-```
-Project/
-├── data/
-│   ├── reddit_enriched_data.jsonl        ← BẮT BUỘC
-│   ├── cascade_visualization.html
-│   ├── 01_raw/reddit/reddit_realtime_data.jsonl  ← BẮT BUỘC
-│   ├── processed_graphs/                 ← Cần cho Training GNN
-│   │   └── *.pt files
-│   └── processed_graphs_multimodal/      ← Cần cho Training Multimodal
-│       └── *.pt files
-├── models/
-│   └── checkpoints/                      ← Model đã train sẵn (tuỳ chọn)
-│       └── *.pt files
-├── demo-website/                         ← Web Dashboard
-│   ├── app.py
-│   ├── index.html
-│   ├── script.js
-│   ├── styles.css
-│   └── run_history.py
-└── src/                                  ← Source code pipeline
-``` 
-
-### Bước 4: Chạy Web Demo
-
-```bash
+```powershell
 cd demo-website
 python app.py
 ```
 
-Mở trình duyệt tại: **http://localhost:5000**
+Sau do mo trinh duyet tai:
 
----
+`http://localhost:5000`
 
-## 📋 Các chức năng trên Dashboard
+## 2. Can chuan bi gi truoc khi demo
 
-| Mục | Chức năng | Mô tả |
-|-----|-----------|-------|
-| 🕷️ | Crawl Reddit | Thu thập bài viết từ Reddit |
-| 💬 | Enrich Data | Làm giàu dữ liệu (comment trees) |
-| 🔗 | Build Graphs | Tạo cascade graphs (PyG `.pt`) |
-| 👁️ | Visualize | Tạo trang trực quan đồ thị |
-| 🔄 | Reddit Pipeline | Xử lý 4 bước: Image→Text→Validate→LS |
-| 📦 | Fakeddit Batch | Xử lý batch Fakeddit |
-| 🏷️ | LS Convert | Chuyển Label Studio export → JSONL |
-| 🤖 | Auto-Label | Tự động gán nhãn bằng AI |
-| 🏋️ | Training | Train 5 loại model (Text/Image/Fusion/GNN/Multimodal) |
-| 📊 | Results | Biểu đồ so sánh hiệu suất |
-| 📜 | Run History | Lịch sử tất cả các lần chạy |
+- Moi truong Python dung de chay `app.py`
+- Model checkpoint va cac file phu tro da co san
+- Neu demo live URL thi can co ket noi mang
+- Neu demo batch thi dung file:
 
----
+`demo-website/demo_batch_curated.jsonl`
 
-## 🔧 Cấu hình Python Path
+## 3. Cach dung nhanh
 
-File `app.py` sử dụng Python executable tại:
-```
-D:\anacoda3\envs\multimodal_gnn\python.exe
-```
+Man hinh demo co 3 khu vuc chinh:
 
-Nếu đường dẫn Conda của bạn khác, sửa dòng này trong `app.py`:
-```python
-PYTHON_EXE = sys.executable  # Tự động detect
-```
+- `Predict`
+- `Training`
+- `Training Results`
 
----
+### Predict URL
 
-## ❓ Troubleshooting
+1. Bam mot trong cac nut URL mau o khung `Demo Inputs`, hoac tu dan URL Reddit vao.
+2. Bam `Predict URL`.
+3. Xem ket qua o ben phai:
+   - nhan du doan
+   - confidence
+   - margin
+   - post info
+   - graph info
+   - model info
 
-| Lỗi | Giải pháp |
-|-----|-----------|
-| `ModuleNotFoundError: flask` | Chạy `pip install flask` |
-| `UnicodeEncodeError` | Đã xử lý trong code, nếu vẫn lỗi chạy: `set PYTHONIOENCODING=utf-8` |
-| Stats hiển thị 0 | Kiểm tra file `data/reddit_enriched_data.jsonl` có tồn tại không |
-| Training lỗi "No graphs" | Cần giải nén `data/processed_graphs/` từ file ZIP |
-| Port 5000 bị chiếm | Đổi port trong `app.py`: `app.run(port=5001)` |
+### Run Batch Prediction
 
----
+1. O muc `Batch JSONL`, chon file `demo-website/demo_batch_curated.jsonl`.
+2. Bam `Run Batch Prediction`.
+3. He thong se hien:
+   - tong so mau
+   - coverage
+   - accuracy / F1
+   - bang ket qua tung dong
 
-## 👥 Cho thành viên muốn truy cập từ xa
+### Training
 
-Sửa dòng cuối trong `app.py` để mở trên mạng LAN:
-```python
-app.run(debug=True, host='0.0.0.0', port=5000)
-```
+1. Chon model trong `Training Configuration`.
+2. Chinh `epochs`, `learning rate`, `batch size` neu can.
+3. Bam `Start Training` de chay mot model.
+4. Bam `Train All` neu muon chay ca chuoi.
 
-Sau đó thành viên cùng mạng WiFi truy cập bằng IP máy chủ: `http://<IP-máy-bạn>:5000`
+### Training Results
 
----
+Phan nay doc tu cac ket qua da co san trong project va hien:
 
-## 📊 Kết nối với Binary Results Dashboard
+- kich thuoc dataset
+- split train / val / test
+- champion accuracy
+- champion F1
+- bang so sanh
+- hinh tong hop ket qua
 
-Demo website hiện đã đọc trực tiếp các artifact trong `results/paper_figures/`. Để phần **Results** trên web hiển thị đúng Binary Accuracy / Binary F1 và các biểu đồ tăng giảm giữa các công nghệ xử lý, chạy thêm bước này sau khi có file kết quả experiment:
+## 4. Cac nut nhanh da co san
 
-```bash
-python src/experiments/visualize_results.py --results results/paper_experiments/<ten_file_ket_qua>.json
-```
+Trong `Demo Inputs` da co:
 
-Khi đó web sẽ tự đọc:
+- `Science A`
+- `Science B`
+- `TheOnion A`
+- `TheOnion B`
 
-- `results/paper_figures/binary_results_summary.md`
-- `results/paper_figures/binary_percentage_comparison.png`
-- `results/paper_figures/binary_accuracy_delta_vs_best_baseline.png`
-- `results/paper_figures/binary_f1_delta_vs_best_baseline.png`
-- `results/paper_figures/ablation_binary_delta_vs_full_model.png`
-- `results/paper_figures/ablation_binary_f1_delta_vs_full_model.png`
+Bam vao la URL duoc dua san vao o nhap.
 
-Nếu chưa sinh các file này, dashboard vẫn mở bình thường nhưng phần kết quả sẽ không có summary/hình mới.
+Ngoai ra co nut `Copy Path` de copy nhanh duong dan:
 
-Ngoài ra, các nút pipeline chính trên web hiện đã được nối sang flow mới:
+`demo-website/demo_batch_curated.jsonl`
 
-- `Reddit Pipeline` -> chuẩn bị batch Reddit cho Label Studio
-- `LS Export -> JSONL` -> merge export và refresh file binary
-- `Enrich Data` -> enrich comment tree và refresh `reddit_enriched_binary.jsonl`
-- `Build Graphs` -> build graph text + multimodal
-- `Training` -> train trên metadata binary hiện tại
+## 5. Loi thuong gap
+
+### Predictor Health khong hien Ready
+
+Nguyen nhan thuong la model chua load duoc hoac thieu dependency.
+
+### Batch prediction loi
+
+Kiem tra lai:
+
+- file JSONL co ton tai
+- file dung dinh dang
+- cac asset can thiet cho predictor van con
+
+### URL prediction loi
+
+Thuong do:
+
+- URL Reddit khong con truy cap duoc
+- mang khong on dinh
+- Reddit khong tra ve du lieu day du
+
+Khi do nen doi sang URL mau khac.
+
+## 6. Ghi chu cho demo
+
+- Neu quay video, nen uu tien `Batch JSONL` truoc.
+- Neu can giao dien de quay dep hon, bat `Presentation Mode`.
+- Neu hoi dong muon test truc tiep, co the dung cac URL mau da gan san tren giao dien.

@@ -61,7 +61,7 @@ def setup_logging(debug=False):
     return logger
 
 class RedditCrawler:
-    def __init__(self, debug=False, limit=25, subreddits=None, images_only=False, skip_comments=False, min_text_length=10):
+    def __init__(self, debug=False, limit=25, subreddits=None, images_only=False, skip_comments=False, min_text_length=10, sort="new", time_filter="all"):
         self.logger = setup_logging(debug)
         self.debug = debug
         self.limit = limit
@@ -69,6 +69,8 @@ class RedditCrawler:
         self.images_only = images_only
         self.skip_comments = skip_comments
         self.min_text_length = min_text_length
+        self.sort = sort
+        self.time_filter = time_filter
         self.run_id = str(uuid.uuid4())[:8]
         self.session = self._setup_session()
         self.stats = {"processed": 0, "new": 0, "skipped_empty": 0, "skipped_text_too_short": 0, "skipped_video": 0, "skipped_no_image": 0, "errors": 0}
@@ -82,7 +84,7 @@ class RedditCrawler:
         )
         adapter = HTTPAdapter(max_retries=retry_strategy)
         session.mount("https://", adapter)
-        session.headers.update({'User-Agent': f'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AntigravityCrawler/{CRAWLER_VERSION} ({self.run_id})'})
+        session.headers.update({'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'})
         return session
 
     def get_existing_ids(self):
@@ -221,7 +223,7 @@ class RedditCrawler:
                 import random
                 time.sleep(random.uniform(2.0, 4.0)) 
                 
-                resp = self.session.get(url, timeout=15)
+                resp = self.session.get(url, timeout=30)
                 
                 if resp.status_code == 429:
                     wait_time = 60 if attempt == 0 else 120
@@ -311,8 +313,11 @@ class RedditCrawler:
         
         for group in self.subreddits:
             try:
-                self.logger.info(f"📡 Crawling r/{group}...")
-                url = f"https://www.reddit.com/r/{group}/new.json?limit={self.limit}"
+                self.logger.info(f"📡 Crawling r/{group} (sort: {self.sort}, t: {self.time_filter})...")
+                if self.sort == "new":
+                    url = f"https://www.reddit.com/r/{group}/new.json?limit={self.limit}"
+                else:
+                    url = f"https://www.reddit.com/r/{group}/{self.sort}.json?limit={self.limit}&t={self.time_filter}"
                 
                 resp = self.session.get(url, timeout=10)
                 resp.raise_for_status()
@@ -433,6 +438,10 @@ if __name__ == "__main__":
                         help="Danh sách subreddit tùy chỉnh (mặc định: dùng list có sẵn)")
     parser.add_argument("--image-heavy", action="store_true",
                         help="Dùng danh sách subreddit có nhiều ảnh (thay vì list news mặc định)")
+    parser.add_argument("--sort", type=str, default="new", choices=["new", "top", "hot", "controversial"],
+                        help="Tiêu chí sắp xếp bài viết trên Reddit (mặc định: new)")
+    parser.add_argument("--time-filter", type=str, default="all", choices=["all", "day", "week", "month", "year"],
+                        help="Bộ lọc thời gian nếu dùng sort=top/controversial (mặc định: all)")
     args = parser.parse_args()
 
     # Chọn danh sách subreddit
@@ -453,7 +462,9 @@ if __name__ == "__main__":
         subreddits=subreddit_list,
         images_only=args.images_only,
         skip_comments=args.skip_comments,
-        min_text_length=args.min_text
+        min_text_length=args.min_text,
+        sort=args.sort,
+        time_filter=args.time_filter
     )
 
     if args.auto:
@@ -472,7 +483,9 @@ if __name__ == "__main__":
                     subreddits=subreddit_list,
                     images_only=args.images_only,
                     skip_comments=args.skip_comments,
-                    min_text_length=args.min_text
+                    min_text_length=args.min_text,
+                    sort=args.sort,
+                    time_filter=args.time_filter
                 )
                 crawler.crawl()
                 

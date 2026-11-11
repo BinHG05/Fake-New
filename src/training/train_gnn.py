@@ -230,7 +230,7 @@ def evaluate(model, loader, device, split_name="val") -> Dict[str, float]:
 def train():
     parser = argparse.ArgumentParser(description='Train GNN on Cascade Graphs')
     parser.add_argument('--graph_dir', default='data/processed_graphs', help='Directory with individual .pt graph files')
-    parser.add_argument('--metadata', default='data/reddit_enriched_binary.jsonl', help='Path to binary metadata JSONL')
+    parser.add_argument('--metadata', default='data/all_merged_binary.jsonl', help='Path to binary metadata JSONL')
     parser.add_argument('--epochs', type=int, default=100, help='Max number of epochs')
     parser.add_argument('--lr', type=float, default=0.001, help='Learning rate')
     parser.add_argument('--weight_decay', type=float, default=5e-4, help='Weight decay')

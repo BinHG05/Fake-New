@@ -1,0 +1,23 @@
+\begin{table}[t]
+\centering
+\caption{Binary ablation package used for the final defense narrative.}
+\label{tab:ablation-definitive}
+\begin{tabular}{llrr}
+\hline
+\textbf{Config} & \textbf{Model} & \textbf{Acc (\%)} & \textbf{F1 (\%)} \\
+\hline
+T & Text-only & 78.62 & 63.60 \\
+T+G & Text + Graph (GAT) & 83.29 & 74.24 \\
+I & Image-only & 87.47 & 79.84 \\
+T & Text-only ablation & 78.62 & 63.60 \\
+I & Image-only ablation & 87.47 & 79.84 \\
+T+I & Text + Image (No Graph) & 88.45 & 80.66 \\
+CrossAtt vs Gated & Gated Fusion & 86.49 & 78.76 \\
+T+I+G & Full Model (Cross-Attention) & 87.47 & 79.18 \\
+\hline
+\multicolumn{4}{l}{Full vs Graph-only: +4.18 pp Acc} \\
+\multicolumn{4}{l}{Full vs No-Graph: -0.98 pp Acc} \\
+\multicolumn{4}{l}{Cross-Attention vs Gated: +0.98 pp Acc} \\
+\hline
+\end{tabular}
+\end{table}

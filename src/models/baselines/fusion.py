@@ -23,7 +23,10 @@ class SimpleFusionModel(nn.Module):
 
         # --- Text backbone (frozen) ---
         from transformers import AutoModel
-        self.text_backbone = AutoModel.from_pretrained(backbone_text)
+        try:
+            self.text_backbone = AutoModel.from_pretrained(backbone_text, local_files_only=True)
+        except Exception:
+            self.text_backbone = AutoModel.from_pretrained(backbone_text)
         for param in self.text_backbone.parameters():
             param.requires_grad = False
         text_dim = self.text_backbone.config.hidden_size  # 768

@@ -22,11 +22,7 @@
             --red: #e74c3c;
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
             font-family: 'Inter', sans-serif;
@@ -51,15 +47,8 @@
         }
 
         @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         /* --- NAV --- */
@@ -91,10 +80,7 @@
             transition: all 0.2s;
         }
 
-        .nav button:hover {
-            background: var(--accent);
-            border-color: var(--accent);
-        }
+        .nav button:hover { background: var(--accent); border-color: var(--accent); }
 
         .nav .counter {
             color: var(--muted);
@@ -104,25 +90,9 @@
         }
 
         /* --- COMMON --- */
-        h1 {
-            font-size: 2.8rem;
-            font-weight: 800;
-            line-height: 1.15;
-            margin-bottom: 12px;
-        }
-
-        h2 {
-            font-size: 1.75rem;
-            font-weight: 700;
-            margin-bottom: 16px;
-        }
-
-        h3 {
-            font-size: 1.2rem;
-            font-weight: 600;
-            margin-bottom: 10px;
-            color: var(--accent2);
-        }
+        h1 { font-size: 2.8rem; font-weight: 800; line-height: 1.15; margin-bottom: 12px; }
+        h2 { font-size: 1.75rem; font-weight: 700; margin-bottom: 16px; }
+        h3 { font-size: 1.2rem; font-weight: 600; margin-bottom: 10px; color: var(--accent2); }
 
         .subtitle {
             font-size: 1.15rem;
@@ -147,39 +117,15 @@
             letter-spacing: 0.5px;
         }
 
-        .badge.done {
-            background: rgba(46, 204, 113, 0.15);
-            color: var(--green);
-        }
-
-        .badge.wip {
-            background: rgba(243, 156, 18, 0.15);
-            color: var(--orange);
-        }
-
-        .badge.todo {
-            background: rgba(136, 136, 170, 0.15);
-            color: var(--muted);
-        }
+        .badge.done { background: rgba(46, 204, 113, 0.15); color: var(--green); }
+        .badge.wip { background: rgba(243, 156, 18, 0.15); color: var(--orange); }
+        .badge.new { background: rgba(108, 99, 255, 0.2); color: var(--accent); }
 
         /* --- GRID CARDS --- */
-        .grid {
-            display: grid;
-            gap: 20px;
-            flex: 1;
-        }
-
-        .grid-2 {
-            grid-template-columns: 1fr 1fr;
-        }
-
-        .grid-3 {
-            grid-template-columns: 1fr 1fr 1fr;
-        }
-
-        .grid-4 {
-            grid-template-columns: 1fr 1fr 1fr 1fr;
-        }
+        .grid { display: grid; gap: 20px; flex: 1; }
+        .grid-2 { grid-template-columns: 1fr 1fr; }
+        .grid-3 { grid-template-columns: 1fr 1fr 1fr; }
+        .grid-4 { grid-template-columns: 1fr 1fr 1fr 1fr; }
 
         .card {
             background: var(--card);
@@ -194,29 +140,12 @@
             box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
         }
 
-        .card .icon {
-            font-size: 2rem;
-            margin-bottom: 10px;
-        }
-
-        .card .val {
-            font-size: 2rem;
-            font-weight: 800;
-        }
-
-        .card .label {
-            color: var(--muted);
-            font-size: 0.85rem;
-            margin-top: 4px;
-        }
+        .card .icon { font-size: 2rem; margin-bottom: 10px; }
+        .card .val { font-size: 2rem; font-weight: 800; }
+        .card .label { color: var(--muted); font-size: 0.85rem; margin-top: 4px; }
 
         /* --- TABLE --- */
-        table {
-            width: 100%;
-            border-collapse: separate;
-            border-spacing: 0;
-            font-size: 0.9rem;
-        }
+        table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 0.9rem; }
 
         th {
             background: var(--surface);
@@ -226,32 +155,12 @@
             font-weight: 600;
         }
 
-        td {
-            padding: 10px 16px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-        }
-
-        tr:hover td {
-            background: rgba(108, 99, 255, 0.07);
-        }
-
-        th:first-child {
-            border-radius: 10px 0 0 0;
-        }
-
-        th:last-child {
-            border-radius: 0 10px 0 0;
-        }
-
-        .best {
-            color: var(--green);
-            font-weight: 700;
-        }
-
-        .highlight-row td {
-            background: rgba(108, 99, 255, 0.1);
-            font-weight: 600;
-        }
+        td { padding: 10px 16px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
+        tr:hover td { background: rgba(108, 99, 255, 0.07); }
+        th:first-child { border-radius: 10px 0 0 0; }
+        th:last-child { border-radius: 0 10px 0 0; }
+        .best { color: var(--green); font-weight: 700; }
+        .highlight-row td { background: rgba(108, 99, 255, 0.1); font-weight: 600; }
 
         /* --- ARCH DIAGRAM --- */
         .arch-box {
@@ -262,7 +171,6 @@
             text-align: center;
             font-weight: 600;
             font-size: 0.95rem;
-            position: relative;
         }
 
         .arch-box.main {
@@ -270,156 +178,93 @@
             box-shadow: 0 0 20px rgba(108, 99, 255, 0.2);
         }
 
-        .arch-arrow {
-            color: var(--accent);
-            font-size: 1.5rem;
-            text-align: center;
-            padding: 6px 0;
-        }
-
-        .arch-flow {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-
-        .arch-row {
-            display: flex;
-            gap: 16px;
-            justify-content: center;
-            align-items: center;
-        }
+        .arch-arrow { color: var(--accent); font-size: 1.5rem; text-align: center; padding: 6px 0; }
+        .arch-flow { display: flex; flex-direction: column; gap: 4px; }
+        .arch-row { display: flex; gap: 16px; justify-content: center; align-items: center; }
 
         /* --- PROGRESS BAR --- */
-        .progress-bar {
-            background: rgba(255, 255, 255, 0.08);
-            border-radius: 8px;
-            height: 10px;
-            overflow: hidden;
-            margin-top: 8px;
-        }
-
-        .progress-fill {
-            height: 100%;
-            border-radius: 8px;
-            transition: width 0.8s ease;
-        }
-
-        .progress-fill.green {
-            background: linear-gradient(90deg, var(--green), #27ae60);
-        }
-
-        .progress-fill.orange {
-            background: linear-gradient(90deg, var(--orange), #e67e22);
-        }
-
-        .progress-fill.blue {
-            background: linear-gradient(90deg, var(--accent), var(--accent2));
-        }
+        .progress-bar { background: rgba(255, 255, 255, 0.08); border-radius: 8px; height: 10px; overflow: hidden; margin-top: 8px; }
+        .progress-fill { height: 100%; border-radius: 8px; transition: width 0.8s ease; }
+        .progress-fill.green { background: linear-gradient(90deg, var(--green), #27ae60); }
+        .progress-fill.orange { background: linear-gradient(90deg, var(--orange), #e67e22); }
+        .progress-fill.blue { background: linear-gradient(90deg, var(--accent), var(--accent2)); }
 
         /* --- TIMELINE --- */
-        .timeline {
-            display: flex;
-            gap: 0;
-            align-items: flex-start;
-            margin: 20px 0;
-        }
+        .timeline { display: flex; gap: 0; align-items: flex-start; margin: 20px 0; }
 
-        .tl-item {
-            flex: 1;
-            text-align: center;
-            position: relative;
-            padding-top: 30px;
-        }
+        .tl-item { flex: 1; text-align: center; position: relative; padding-top: 30px; }
 
         .tl-item::before {
             content: '';
-            position: absolute;
-            top: 10px;
-            left: 0;
-            right: 0;
-            height: 3px;
+            position: absolute; top: 10px; left: 0; right: 0; height: 3px;
             background: rgba(255, 255, 255, 0.1);
         }
 
         .tl-item::after {
             content: '';
-            position: absolute;
-            top: 4px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 16px;
-            height: 16px;
+            position: absolute; top: 4px; left: 50%; transform: translateX(-50%);
+            width: 16px; height: 16px;
             border-radius: 50%;
             border: 3px solid var(--muted);
             background: var(--bg);
             z-index: 1;
         }
 
-        .tl-item.done::after {
-            border-color: var(--green);
-            background: var(--green);
-        }
+        .tl-item.done::after { border-color: var(--green); background: var(--green); }
+        .tl-item.wip::after { border-color: var(--orange); background: var(--orange); }
 
-        .tl-item.wip::after {
-            border-color: var(--orange);
-            background: var(--orange);
-        }
+        .tl-item .tl-label { font-size: 0.8rem; font-weight: 600; margin-top: 4px; }
+        .tl-item .tl-sub { font-size: 0.7rem; color: var(--muted); margin-top: 2px; }
 
-        .tl-item .tl-label {
-            font-size: 0.8rem;
-            font-weight: 600;
-            margin-top: 4px;
-        }
+        .text-sm { font-size: 0.85rem; }
+        .text-center { text-align: center; }
+        .mb-20 { margin-bottom: 20px; }
 
-        .tl-item .tl-sub {
-            font-size: 0.7rem;
-            color: var(--muted);
-            margin-top: 2px;
-        }
+        ul.check-list { list-style: none; }
+        ul.check-list li { padding: 6px 0; font-size: 0.95rem; }
+        ul.check-list li::before { content: '✅ '; }
+        ul.check-list li.wip::before { content: '🔄 '; }
+        ul.check-list li.todo::before { content: '⬜ '; }
 
-        .flex-center {
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        /* --- DELTA BADGE --- */
+        .delta-up {
+            display: inline-block;
+            background: rgba(46, 204, 113, 0.15);
+            color: var(--green);
+            padding: 2px 10px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 0.85rem;
         }
-
-        .mt-auto {
-            margin-top: auto;
-        }
-
-        .mb-20 {
-            margin-bottom: 20px;
-        }
-
-        .text-sm {
+        .delta-down {
+            display: inline-block;
+            background: rgba(231, 76, 60, 0.15);
+            color: var(--red);
+            padding: 2px 10px;
+            border-radius: 8px;
+            font-weight: 700;
             font-size: 0.85rem;
         }
 
-        .text-center {
-            text-align: center;
+        /* --- BAR CHART --- */
+        .bar-chart { display: flex; align-items: flex-end; gap: 16px; height: 200px; padding: 20px 0; }
+        .bar-group { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+        .bar {
+            width: 60px;
+            border-radius: 8px 8px 0 0;
+            transition: height 1s ease;
+            position: relative;
         }
-
-        ul.check-list {
-            list-style: none;
+        .bar .bar-val {
+            position: absolute;
+            top: -24px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.8rem;
+            font-weight: 700;
+            white-space: nowrap;
         }
-
-        ul.check-list li {
-            padding: 6px 0;
-            font-size: 0.95rem;
-        }
-
-        ul.check-list li::before {
-            content: '✅ ';
-        }
-
-        ul.check-list li.wip::before {
-            content: '🔄 ';
-        }
-
-        ul.check-list li.todo::before {
-            content: '⬜ ';
-        }
+        .bar-label { font-size: 0.75rem; color: var(--muted); text-align: center; }
     </style>
 </head>
 
@@ -427,21 +272,21 @@
 
     <!-- ========================== SLIDE 1: TITLE ========================== -->
     <div class="slide active" id="s1">
-        <div
-            style="flex:1; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center;">
+        <div style="flex:1; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center;">
             <div style="font-size:4rem; margin-bottom:20px;">🔍</div>
             <h1>Phát hiện <span class="grad">Tin Giả Đa Phương Thức</span><br>trên Mạng Xã Hội</h1>
             <p class="subtitle" style="max-width:700px;">
-                Multimodal Fake News Detection using Graph Neural Networks
+                Multimodal Fake News Detection using CLIP, XLM-RoBERTa & Graph Neural Networks
             </p>
-            <div style="display:flex; gap:16px; margin-top:20px;">
-                <span class="badge done">Text Analysis</span>
-                <span class="badge done">Image Analysis</span>
-                <span class="badge done">Graph Neural Networks</span>
-                <span class="badge done">Cross-Attention Fusion</span>
+            <div style="display:flex; gap:16px; margin-top:20px; flex-wrap: wrap; justify-content: center;">
+                <span class="badge done">CLIP Vision + Text</span>
+                <span class="badge done">XLM-RoBERTa</span>
+                <span class="badge done">Graph Attention Network</span>
+                <span class="badge done">Expert Fusion</span>
+                <span class="badge new">🆕 88.9% Accuracy</span>
             </div>
             <p style="margin-top:40px; color:var(--muted); font-size:0.9rem;">
-                Báo cáo tiến độ NCKH — Ngày 11/03/2026
+                Báo cáo tiến độ NCKH — Cập nhật 20/04/2026
             </p>
         </div>
     </div>
@@ -449,34 +294,42 @@
     <!-- ========================== SLIDE 2: TỔNG QUAN ========================== -->
     <div class="slide" id="s2">
         <h2>📌 Tổng Quan Đề Tài</h2>
-        <p class="subtitle">Kết hợp 3 nguồn thông tin để phát hiện tin giả chính xác hơn</p>
+        <p class="subtitle">Kết hợp 3 nguồn thông tin với CLIP multimodal để phát hiện tin giả</p>
         <div class="grid grid-3" style="flex:1;">
             <div class="card" style="text-align:center;">
                 <div class="icon">📝</div>
                 <h3>Văn bản (Text)</h3>
-                <p class="text-sm">Mã hóa bằng <strong>XLM-RoBERTa</strong><br>Vector 768 chiều<br>Hỗ trợ 100+ ngôn ngữ
+                <p class="text-sm">
+                    <strong>CLIP Text Encoder</strong> (512d)<br>
+                    + <strong>XLM-RoBERTa</strong> (768d)<br>
+                    Hiểu ngữ nghĩa sâu + đa ngôn ngữ
                 </p>
             </div>
             <div class="card" style="text-align:center;">
                 <div class="icon">🖼️</div>
                 <h3>Hình ảnh (Image)</h3>
-                <p class="text-sm">Trích xuất bằng <strong>ResNet50</strong><br>Vector 2048d → 512 chiều<br>L2
-                    Normalized</p>
+                <p class="text-sm">
+                    <strong>CLIP Vision Encoder</strong> (512d)<br>
+                    ViT-B/32 pretrained<br>
+                    + Mismatch Score (Text↔Image)
+                </p>
             </div>
             <div class="card" style="text-align:center;">
                 <div class="icon">🔗</div>
                 <h3>Đồ thị lan truyền</h3>
-                <p class="text-sm">Cascade Graph từ <strong>Reddit Comments</strong><br>Nodes = bài/bình luận<br>Edges =
-                    reply-to</p>
+                <p class="text-sm">
+                    Cascade Graph từ <strong>Reddit Comments</strong><br>
+                    Nodes = bài/bình luận<br>
+                    GNN: GAT + Cross-Attention
+                </p>
             </div>
         </div>
         <div class="card" style="margin-top:20px; text-align:center;">
-            <p><strong>Mục tiêu:</strong> Text + Image + Graph → <span class="grad"
-                    style="font-weight:700;">Cross-Attention Fusion + GraphSAGE</span> → Phân loại 6 mức độ tin cậy</p>
+            <p><strong>Pipeline:</strong> CLIP (Image+Text) + XLM-R → <span class="grad" style="font-weight:700;">Expert Fusion / GAT</span> → Phân loại REAL / FAKE (Binary)</p>
         </div>
     </div>
 
-    <!-- ========================== SLIDE 3: TIẾN ĐỘ TỔNG THỂ ========================== -->
+    <!-- ========================== SLIDE 3: TIẾN ĐỘ ========================== -->
     <div class="slide" id="s3">
         <h2>📅 Tiến Độ Tổng Thể</h2>
         <div class="timeline">
@@ -490,18 +343,18 @@
             </div>
             <div class="tl-item done">
                 <div class="tl-label">Phase 3</div>
-                <div class="tl-sub">Baseline<br>Models</div>
+                <div class="tl-sub">Baseline<br>Models (63%)</div>
             </div>
             <div class="tl-item done">
-                <div class="tl-label">Phase 4</div>
-                <div class="tl-sub">Multimodal<br>GNN</div>
+                <div class="tl-label">Phase 4a</div>
+                <div class="tl-sub">🆕 CLIP+XLM-R<br>Content (89%)</div>
             </div>
             <div class="tl-item done">
-                <div class="tl-label">Phase 5</div>
-                <div class="tl-sub">Experiment<br>& Evaluation</div>
+                <div class="tl-label">Phase 4b</div>
+                <div class="tl-sub">🆕 Multimodal<br>GNN (87.5%)</div>
             </div>
             <div class="tl-item wip">
-                <div class="tl-label">Phase 6</div>
+                <div class="tl-label">Phase 5</div>
                 <div class="tl-sub">Paper &<br>Demo</div>
             </div>
         </div>
@@ -511,39 +364,33 @@
                 <div class="label">Cascade Graphs</div>
             </div>
             <div class="card">
-                <div class="val" style="color:var(--accent);">12+</div>
-                <div class="label">Mô hình đã train</div>
+                <div class="val" style="color:var(--accent);">95.6%</div>
+                <div class="label">Ảnh đã phục hồi</div>
             </div>
             <div class="card">
-                <div class="val" style="color:var(--accent2);">6</div>
-                <div class="label">Lớp phân loại</div>
+                <div class="val" style="color:var(--accent2);">2</div>
+                <div class="label">Lớp: REAL / FAKE</div>
             </div>
             <div class="card">
-                <div class="val" style="color:var(--orange);">5</div>
-                <div class="label">Multi-seed runs</div>
+                <div class="val" style="color:var(--orange);">88.9%</div>
+                <div class="label">Best Accuracy 🏆</div>
             </div>
         </div>
         <div class="grid grid-3" style="margin-top:20px;">
             <div class="card">
                 <h3>Phase 1–2: Dữ liệu & Đồ thị</h3>
-                <div class="progress-bar">
-                    <div class="progress-fill green" style="width:100%"></div>
-                </div>
+                <div class="progress-bar"><div class="progress-fill green" style="width:100%"></div></div>
                 <p class="text-sm" style="margin-top:8px; color:var(--green);">100% hoàn thành</p>
             </div>
             <div class="card">
-                <h3>Phase 3–5: Models & Experiments</h3>
-                <div class="progress-bar">
-                    <div class="progress-fill green" style="width:100%"></div>
-                </div>
+                <h3>Phase 3–4: Models & Experiments</h3>
+                <div class="progress-bar"><div class="progress-fill green" style="width:100%"></div></div>
                 <p class="text-sm" style="margin-top:8px; color:var(--green);">100% hoàn thành</p>
             </div>
             <div class="card">
-                <h3>Phase 6: Paper & Demo</h3>
-                <div class="progress-bar">
-                    <div class="progress-fill orange" style="width:75%"></div>
-                </div>
-                <p class="text-sm" style="margin-top:8px; color:var(--orange);">75% — Đang viết báo cáo</p>
+                <h3>Phase 5: Paper & Demo</h3>
+                <div class="progress-bar"><div class="progress-fill orange" style="width:80%"></div></div>
+                <p class="text-sm" style="margin-top:8px; color:var(--orange);">80% — Đang hoàn thiện</p>
             </div>
         </div>
     </div>
@@ -556,19 +403,20 @@
                 <div class="card mb-20">
                     <h3>Nguồn dữ liệu</h3>
                     <ul class="check-list">
-                        <li>Fakeddit dataset (Reddit-based, 6-class labels)</li>
+                        <li>Fakeddit dataset (Reddit-based, binary labels)</li>
                         <li>Crawl bổ sung từ Reddit API (5 subreddit)</li>
                         <li>Comment tree đệ quy (DFS parse)</li>
                         <li>Label Studio annotation (Human-in-the-loop)</li>
+                        <li>🆕 Phục hồi ảnh bị thiếu từ media_url (~95.6%)</li>
                     </ul>
                 </div>
                 <div class="card">
-                    <h3>Pipeline xử lý</h3>
+                    <h3>🆕 Pipeline xử lý v2 (CLIP-based)</h3>
                     <ul class="check-list">
-                        <li>Text: Regex cleaning, Unicode normalize</li>
-                        <li>Image: Resize 224×224, ImageNet normalization</li>
-                        <li>Embedding: XLM-R (768d) + ResNet50 (512d)</li>
-                        <li>Graph: NetworkX → PyG Data (.pt files)</li>
+                        <li>Text: CLIP Text Encoder (512d) + XLM-R (768d)</li>
+                        <li>Image: CLIP Vision Encoder ViT-B/32 (512d)</li>
+                        <li>Mismatch: Cosine similarity Text↔Image (1d)</li>
+                        <li>Graph: PyG Data + CLIP features injection (1793d)</li>
                     </ul>
                 </div>
             </div>
@@ -576,382 +424,260 @@
                 <div class="card mb-20">
                     <h3>Thống kê dữ liệu</h3>
                     <table>
-                        <tr>
-                            <th>Thuộc tính</th>
-                            <th>Giá trị</th>
-                        </tr>
-                        <tr>
-                            <td>Tổng cascade graphs</td>
-                            <td><strong>2,384</strong></td>
-                        </tr>
-                        <tr>
-                            <td>Tập Train</td>
-                            <td>1,850 graphs</td>
-                        </tr>
-                        <tr>
-                            <td>Tập Validation</td>
-                            <td>254 graphs</td>
-                        </tr>
-                        <tr>
-                            <td>Tập Test</td>
-                            <td>280 graphs</td>
-                        </tr>
-                        <tr>
-                            <td>Bài viết có ảnh</td>
-                            <td>402 (16.9%)</td>
-                        </tr>
-                        <tr>
-                            <td>Số lớp</td>
-                            <td>6 mức độ</td>
-                        </tr>
+                        <tr><th>Thuộc tính</th><th>Giá trị</th></tr>
+                        <tr><td>Tổng cascade graphs</td><td><strong>2,384</strong></td></tr>
+                        <tr><td>Tập Train</td><td>1,850 graphs</td></tr>
+                        <tr><td>Tập Validation</td><td>254 graphs</td></tr>
+                        <tr><td>Tập Test</td><td>280 graphs</td></tr>
+                        <tr><td>Bài viết có ảnh</td><td><strong>2,281 (95.6%)</strong> 🆕</td></tr>
+                        <tr><td>Phân loại</td><td>Binary (REAL / FAKE)</td></tr>
                     </table>
                 </div>
                 <div class="card">
-                    <h3>Phân bố nhãn (Test set)</h3>
+                    <h3>Phân bố nhãn (Test set, n=280)</h3>
                     <table>
-                        <tr>
-                            <th>Nhãn</th>
-                            <th>Số lượng</th>
-                            <th>Tỷ lệ</th>
-                        </tr>
-                        <tr>
-                            <td>TRUE</td>
-                            <td>123</td>
-                            <td>43.9%</td>
-                        </tr>
-                        <tr>
-                            <td>MOSTLY_TRUE</td>
-                            <td>31</td>
-                            <td>11.1%</td>
-                        </tr>
-                        <tr>
-                            <td>HALF_TRUE</td>
-                            <td>16</td>
-                            <td>5.7%</td>
-                        </tr>
-                        <tr>
-                            <td>BARELY_TRUE</td>
-                            <td>8</td>
-                            <td>2.9%</td>
-                        </tr>
-                        <tr>
-                            <td>FALSE</td>
-                            <td>60</td>
-                            <td>21.4%</td>
-                        </tr>
-                        <tr>
-                            <td>PANTS_ON_FIRE</td>
-                            <td>42</td>
-                            <td>15.0%</td>
-                        </tr>
+                        <tr><th>Nhãn</th><th>Số lượng</th><th>Tỷ lệ</th></tr>
+                        <tr><td>REAL</td><td>163</td><td>58.2%</td></tr>
+                        <tr><td>FAKE</td><td>117</td><td>41.8%</td></tr>
                     </table>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- ========================== SLIDE 5: KIẾN TRÚC ========================== -->
+    <!-- ========================== SLIDE 5: CLIP GIẢI THÍCH ========================== -->
     <div class="slide" id="s5">
-        <h2>🏗️ Phase 4: Kiến Trúc Mô Hình Đề Xuất</h2>
-        <p class="subtitle">Multimodal Cascade GNN — Cross-Attention Fusion + GraphSAGE</p>
-        <div class="arch-flow" style="max-width:700px; margin:0 auto; flex:1; justify-content:center;">
-            <div class="arch-row">
-                <div class="arch-box" style="flex:1;">📝 XLM-RoBERTa<br><span class="text-sm"
-                        style="color:var(--muted);">frozen, 768d [CLS]</span></div>
-                <div class="arch-box" style="flex:1;">🖼️ ResNet50<br><span class="text-sm"
-                        style="color:var(--muted);">frozen, 2048d → 512d</span></div>
+        <h2>🧠 Tại Sao Dùng CLIP? — Đột Phá Cốt Lõi</h2>
+        <p class="subtitle">CLIP (Contrastive Language-Image Pre-training) — OpenAI — Trained on 400M image-text pairs</p>
+        <div class="grid grid-2" style="flex:1;">
+            <div class="card">
+                <h3>❌ Trước đây (Phase 3 — Baseline)</h3>
+                <ul style="list-style:none; padding:0;">
+                    <li style="padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.05);">
+                        <strong>Text:</strong> XLM-RoBERTa chỉ hiểu ngữ nghĩa văn bản<br>
+                        <span class="text-sm" style="color:var(--muted);">→ Không biết "chữ" này liên quan đến "ảnh" nào</span>
+                    </li>
+                    <li style="padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.05);">
+                        <strong>Image:</strong> ResNet50 chỉ trích xuất đặc trưng thị giác<br>
+                        <span class="text-sm" style="color:var(--muted);">→ Không hiểu ý nghĩa ngữ cảnh của bức ảnh</span>
+                    </li>
+                    <li style="padding:8px 0;">
+                        <strong>Kết quả:</strong> <span class="delta-down">63.2% Accuracy</span><br>
+                        <span class="text-sm" style="color:var(--muted);">→ Text và Image "nói chuyện khác ngôn ngữ"</span>
+                    </li>
+                </ul>
             </div>
-            <div class="arch-arrow">↓ ↓</div>
-            <div class="arch-box main">
-                🔀 <strong>Cross-Attention Fusion</strong><br>
-                <span class="text-sm" style="color:var(--muted);">Text → Q | Image → K,V | Gated Residual | →
-                    256d</span>
-            </div>
-            <div class="arch-arrow">↓</div>
-            <div class="arch-box main">
-                🔗 <strong>GraphSAGE × 2 layers</strong><br>
-                <span class="text-sm" style="color:var(--muted);">Message Passing + Residual + LayerNorm | → 256d</span>
-            </div>
-            <div class="arch-arrow">↓</div>
-            <div class="arch-box">
-                📊 <strong>Global Mean Pooling → MLP Classifier</strong><br>
-                <span class="text-sm" style="color:var(--muted);">256 → 128 → 6 classes</span>
+            <div class="card" style="border-color: var(--green);">
+                <h3>✅ Hiện tại (Phase 4 — CLIP)</h3>
+                <ul style="list-style:none; padding:0;">
+                    <li style="padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.05);">
+                        <strong>CLIP Text:</strong> Hiểu chữ qua "lăng kính hình ảnh"<br>
+                        <span class="text-sm" style="color:var(--green);">→ Đọc "chiến tranh" → tự liên tưởng tới hình ảnh chiến tranh</span>
+                    </li>
+                    <li style="padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.05);">
+                        <strong>CLIP Image:</strong> Hiểu ảnh qua "lăng kính ngôn ngữ"<br>
+                        <span class="text-sm" style="color:var(--green);">→ Nhìn ảnh phim trường → biết đó không phải chiến tranh thật</span>
+                    </li>
+                    <li style="padding:8px 0;">
+                        <strong>Mismatch Detection:</strong> <span class="delta-up">88.9% Accuracy</span><br>
+                        <span class="text-sm" style="color:var(--green);">→ Phát hiện khi "chữ nói một đằng, ảnh nói một nẻo"</span>
+                    </li>
+                </ul>
             </div>
         </div>
-        <div class="grid grid-3" style="margin-top:20px;">
-            <div class="card text-center">
-                <div class="val" style="color:var(--accent);">~200K</div>
-                <div class="label">Trainable Parameters</div>
+        <div class="card" style="margin-top:20px; text-align:center;">
+            <p><strong>Bí quyết:</strong> CLIP tạo ra một <span class="grad" style="font-weight:700;">không gian chung (shared embedding space)</span> cho cả Text lẫn Image, giúp model phát hiện sự "lệch pha" — dấu hiệu then chốt của tin giả.</p>
+        </div>
+    </div>
+
+    <!-- ========================== SLIDE 6: KIẾN TRÚC V2 ========================== -->
+    <div class="slide" id="s6">
+        <h2>🏗️ Phase 4: Kiến Trúc Mô Hình (2 Phiên Bản)</h2>
+        <div class="grid grid-2" style="flex:1;">
+            <div>
+                <div class="card" style="height:100%;">
+                    <h3>v2: Content-Based (Expert Fusion MLP)</h3>
+                    <div class="arch-flow">
+                        <div class="arch-row">
+                            <div class="arch-box" style="flex:1;">📝 CLIP Text<br><span class="text-sm" style="color:var(--muted);">512d</span></div>
+                            <div class="arch-box" style="flex:1;">🖼️ CLIP Image<br><span class="text-sm" style="color:var(--muted);">512d</span></div>
+                            <div class="arch-box" style="flex:1;">🌐 XLM-R<br><span class="text-sm" style="color:var(--muted);">768d</span></div>
+                        </div>
+                        <div class="arch-arrow">↓ ↓ ↓</div>
+                        <div class="arch-box main">
+                            🔀 <strong>Gated Expert Fusion</strong><br>
+                            <span class="text-sm" style="color:var(--muted);">3 Expert MLPs + Attention Gate → σ weighted</span>
+                        </div>
+                        <div class="arch-arrow">↓</div>
+                        <div class="arch-box">📊 MLP Classifier → REAL / FAKE</div>
+                    </div>
+                    <div style="margin-top:16px; text-align:center;">
+                        <span class="delta-up" style="font-size:1.2rem;">88.9% Accuracy 🏆</span>
+                    </div>
+                </div>
             </div>
-            <div class="card text-center">
-                <div class="val" style="color:var(--accent2);">4 heads</div>
-                <div class="label">Multi-Head Attention</div>
-            </div>
-            <div class="card text-center">
-                <div class="val" style="color:var(--green);">Gate σ</div>
-                <div class="label">Auto fallback text khi ảnh nhiễu</div>
+            <div>
+                <div class="card" style="height:100%;">
+                    <h3>v3: Multimodal GNN (GAT Fusion)</h3>
+                    <div class="arch-flow">
+                        <div class="arch-row">
+                            <div class="arch-box" style="flex:1;">📝 XLM-R (768d)<br><span class="text-sm" style="color:var(--muted);">+ CLIP-T (512d) + CLIP-I (512d) + Mismatch (1d)</span></div>
+                        </div>
+                        <div class="arch-arrow">↓ inject vào mỗi node</div>
+                        <div class="arch-box main">
+                            🔀 <strong>Cross-Attention Fusion</strong><br>
+                            <span class="text-sm" style="color:var(--muted);">Text→Q | Image→K,V | Gated Residual → 256d</span>
+                        </div>
+                        <div class="arch-arrow">↓</div>
+                        <div class="arch-box main">
+                            🔗 <strong>GAT × 2 layers</strong><br>
+                            <span class="text-sm" style="color:var(--muted);">Attention Message Passing + Residual → 256d</span>
+                        </div>
+                        <div class="arch-arrow">↓</div>
+                        <div class="arch-box">📊 Global Mean Pool → MLP → REAL / FAKE</div>
+                    </div>
+                    <div style="margin-top:16px; text-align:center;">
+                        <span class="delta-up" style="font-size:1.2rem;">87.5% Accuracy</span>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- ========================== SLIDE 6: KẾT QUẢ BASELINE ========================== -->
-    <div class="slide" id="s6">
-        <h2>📈 Phase 3: Kết Quả Baseline</h2>
-        <p class="subtitle">6 mô hình cơ sở làm chuẩn so sánh</p>
+    <!-- ========================== SLIDE 7: KẾT QUẢ SO SÁNH ========================== -->
+    <div class="slide" id="s7">
+        <h2>🏆 Kết Quả: So Sánh Toàn Bộ Pipeline</h2>
+        <p class="subtitle">Sự nhảy vọt từ Baseline (63%) lên CLIP-based (89%) — Tăng +25.7%</p>
         <table>
             <tr>
                 <th>#</th>
                 <th>Mô hình</th>
                 <th>Mô tả</th>
-                <th>6-Class F1</th>
-                <th>6-Class Acc</th>
                 <th>Binary Acc</th>
                 <th>Binary F1</th>
+                <th>Δ vs Baseline</th>
             </tr>
             <tr>
                 <td>B1</td>
-                <td>Text-Only</td>
+                <td>Text-Only (Phase 3)</td>
                 <td>XLM-R (frozen) + Linear</td>
-                <td>0.1289</td>
-                <td>0.2643</td>
-                <td>0.5250</td>
-                <td>0.5611</td>
-            </tr>
-            <tr>
-                <td>B2</td>
-                <td>Image-Only</td>
-                <td>ResNet50 (frozen) + Linear</td>
-                <td>0.1017</td>
-                <td>0.4393</td>
-                <td>0.6071</td>
-                <td>0.0000</td>
-            </tr>
-            <tr>
-                <td>B3</td>
-                <td>Fusion (Concat)</td>
-                <td>XLM-R + ResNet50 + MLP</td>
-                <td>0.1017</td>
-                <td>0.4393</td>
-                <td>0.6071</td>
-                <td>0.0000</td>
-            </tr>
-            <tr>
-                <td>B4</td>
-                <td>Graph GCN</td>
-                <td>Text embeddings + GCN</td>
-                <td>0.1637</td>
-                <td>0.2786</td>
-                <td>0.6286</td>
-                <td>0.6000</td>
-            </tr>
-            <tr class="highlight-row">
-                <td>B5</td>
-                <td><strong>Graph SAGE</strong></td>
-                <td>Text embeddings + GraphSAGE</td>
-                <td class="best">0.1895</td>
-                <td>0.2357</td>
-                <td>0.6179</td>
-                <td>0.5900</td>
-            </tr>
-            <tr>
-                <td>B6</td>
-                <td>Graph GAT</td>
-                <td>Text embeddings + GAT</td>
-                <td>0.1713</td>
-                <td class="best">0.3571</td>
-                <td class="best">0.6393</td>
-                <td>0.4975</td>
-            </tr>
-        </table>
-        <div class="grid grid-3" style="margin-top:20px;">
-            <div class="card">
-                <h3>💡 Nhận xét chính</h3>
-                <p class="text-sm">GNN vượt trội các mô hình đơn phương thức → Cấu trúc đồ thị chứa tín hiệu mạnh</p>
-            </div>
-            <div class="card">
-                <h3>⚠️ Fusion đơn giản thất bại</h3>
-                <p class="text-sm">Concat fusion = Image-Only vì 83% posts không có ảnh → ảnh nhiễu "lấn" text</p>
-            </div>
-            <div class="card">
-                <h3>🎯 Best baseline</h3>
-                <p class="text-sm">GraphSAGE: F1=0.190 | GAT: Binary Acc=63.9%</p>
-            </div>
-        </div>
-    </div>
-
-    <!-- ========================== SLIDE 7: ABLATION ========================== -->
-    <div class="slide" id="s7">
-        <h2>🔬 Phase 4: Ablation Study</h2>
-        <p class="subtitle">Đánh giá đóng góp của từng thành phần trong mô hình đề xuất</p>
-        <table>
-            <tr>
-                <th>Biến thể</th>
-                <th>Mô tả</th>
-                <th>6-Class F1</th>
-                <th>Binary Acc</th>
-                <th>Δ Binary Acc</th>
-            </tr>
-            <tr class="highlight-row">
-                <td><strong>Full Model</strong></td>
-                <td>CrossAttention + GraphSAGE (đầy đủ)</td>
-                <td>0.1400</td>
-                <td class="best">0.6643</td>
+                <td>52.5%</td>
+                <td>0.561</td>
                 <td>—</td>
             </tr>
             <tr>
-                <td>Text Only</td>
-                <td>Zero image features</td>
-                <td>0.1524</td>
-                <td>0.4393</td>
-                <td style="color:var(--red);">−22.5%</td>
+                <td>B2</td>
+                <td>Graph GCN (Phase 3)</td>
+                <td>Text embeddings + GCN</td>
+                <td>62.9%</td>
+                <td>0.600</td>
+                <td><span class="delta-up">+10.4%</span></td>
             </tr>
             <tr>
-                <td>Image Only</td>
-                <td>Zero text features</td>
-                <td>0.0956</td>
-                <td>0.4214</td>
-                <td style="color:var(--red);">−24.3%</td>
+                <td>B3</td>
+                <td>Graph GAT (Phase 3)</td>
+                <td>Text embeddings + GAT</td>
+                <td>63.9%</td>
+                <td>0.498</td>
+                <td><span class="delta-up">+11.4%</span></td>
             </tr>
             <tr>
-                <td>No Graph</td>
-                <td>Bỏ GNN, chỉ fusion</td>
-                <td>0.1473</td>
-                <td>0.4607</td>
-                <td style="color:var(--red);">−20.3%</td>
+                <td>B4</td>
+                <td>v1 Baseline (Phase 4)</td>
+                <td>Old text features + MLP</td>
+                <td>58.9%</td>
+                <td>0.465</td>
+                <td><span class="delta-up">+6.4%</span></td>
             </tr>
-            <tr>
-                <td>Text+Graph Only</td>
-                <td>Graphs không có image features</td>
-                <td>0.1580</td>
-                <td>0.4571</td>
-                <td style="color:var(--red);">−20.7%</td>
+            <tr class="highlight-row">
+                <td>🆕</td>
+                <td><strong>v2 CLIP-Only MLP</strong></td>
+                <td>CLIP Text + Image + Expert Gate</td>
+                <td class="best"><strong>88.6%</strong></td>
+                <td class="best"><strong>0.882</strong></td>
+                <td><span class="delta-up">+36.1%</span></td>
             </tr>
-            <tr>
-                <td>Gated Fusion</td>
-                <td>Thay CrossAttention bằng Gated</td>
-                <td class="best">0.1674</td>
-                <td>0.4607</td>
-                <td style="color:var(--red);">−20.3%</td>
+            <tr class="highlight-row">
+                <td>🆕</td>
+                <td><strong>v2 Full CLIP+XLM-R</strong></td>
+                <td>CLIP + XLM-R + Expert Fusion</td>
+                <td class="best"><strong>88.9%</strong></td>
+                <td class="best"><strong>0.870</strong></td>
+                <td><span class="delta-up">+36.4%</span></td>
+            </tr>
+            <tr class="highlight-row">
+                <td>🆕</td>
+                <td><strong>v3 Multimodal GNN</strong></td>
+                <td>CLIP features + GAT + CrossAttention</td>
+                <td class="best"><strong>87.5%</strong></td>
+                <td><strong>0.847</strong></td>
+                <td><span class="delta-up">+35.0%</span></td>
             </tr>
         </table>
         <div class="grid grid-3" style="margin-top:20px;">
             <div class="card text-center">
-                <div class="val" style="color:var(--green); font-size:1.6rem;">+20.3%</div>
-                <div class="label">Đóng góp của GNN</div>
-                <p class="text-sm" style="margin-top:4px; color:var(--muted);">Full (66.4%) vs No Graph (46.1%)</p>
+                <div class="val" style="color:var(--green); font-size:1.6rem;">+25.7%</div>
+                <div class="label">Accuracy tăng tuyệt đối</div>
+                <p class="text-sm" style="margin-top:4px; color:var(--muted);">63.2% → 88.9%</p>
             </div>
             <div class="card text-center">
-                <div class="val" style="color:var(--accent2); font-size:1.6rem;">+20.7%</div>
-                <div class="label">Đóng góp của Image</div>
-                <p class="text-sm" style="margin-top:4px; color:var(--muted);">Full (66.4%) vs Text+Graph (45.7%)</p>
+                <div class="val" style="color:var(--accent2); font-size:1.6rem;">0.870</div>
+                <div class="label">Best Binary F1</div>
+                <p class="text-sm" style="margin-top:4px; color:var(--muted);">CLIP+XLM-R Expert Fusion</p>
             </div>
             <div class="card text-center">
-                <div class="val" style="color:var(--accent); font-size:1.6rem;">+22.5%</div>
-                <div class="label">Đóng góp của Text</div>
-                <p class="text-sm" style="margin-top:4px; color:var(--muted);">Full (66.4%) vs Text Only (43.9%)</p>
+                <div class="val" style="color:var(--accent); font-size:1.6rem;">890K</div>
+                <div class="label">GNN Parameters</div>
+                <p class="text-sm" style="margin-top:4px; color:var(--muted);">Lightweight yet powerful</p>
             </div>
         </div>
     </div>
 
-    <!-- ========================== SLIDE 8: MULTI-SEED ========================== -->
+    <!-- ========================== SLIDE 8: CONFUSION MATRIX ========================== -->
     <div class="slide" id="s8">
-        <h2>📊 Tính Ổn Định (Multi-Seed Evaluation)</h2>
-        <p class="subtitle">Full Model chạy với 5 random seeds khác nhau để đảm bảo tính tin cậy thống kê</p>
+        <h2>🔬 Phân Tích Chi Tiết — Classification Report</h2>
+        <p class="subtitle">Kết quả trên Test Set (n=280) — Model v3: Multimodal GNN (GAT)</p>
         <div class="grid grid-2" style="flex:1;">
             <div>
-                <table>
-                    <tr>
-                        <th>Seed</th>
-                        <th>6-Class F1</th>
-                        <th>6-Class Acc</th>
-                        <th>Binary Acc</th>
-                        <th>Binary F1</th>
-                    </tr>
-                    <tr>
-                        <td>42</td>
-                        <td>0.1561</td>
-                        <td>0.2607</td>
-                        <td>0.6607</td>
-                        <td>0.5701</td>
-                    </tr>
-                    <tr>
-                        <td>123</td>
-                        <td>0.1562</td>
-                        <td class="best">0.3607</td>
-                        <td>0.6357</td>
-                        <td>0.5234</td>
-                    </tr>
-                    <tr>
-                        <td>456</td>
-                        <td>0.1925</td>
-                        <td>0.3000</td>
-                        <td>0.6393</td>
-                        <td class="best">0.5911</td>
-                    </tr>
-                    <tr>
-                        <td>789</td>
-                        <td class="best">0.1943</td>
-                        <td>0.2393</td>
-                        <td>0.5536</td>
-                        <td>0.5530</td>
-                    </tr>
-                    <tr>
-                        <td>1024</td>
-                        <td>0.1601</td>
-                        <td>0.2000</td>
-                        <td>0.5250</td>
-                        <td>0.5183</td>
-                    </tr>
-                </table>
-                <div class="card" style="margin-top:16px;">
-                    <h3>Mean ± Std</h3>
+                <div class="card mb-20">
+                    <h3>Classification Report — GNN v3</h3>
                     <table>
-                        <tr>
-                            <th>Metric</th>
-                            <th>Mean</th>
-                            <th>Std</th>
-                        </tr>
-                        <tr>
-                            <td>6-Class F1</td>
-                            <td><strong>0.1718</strong></td>
-                            <td>0.0178</td>
-                        </tr>
-                        <tr>
-                            <td>6-Class Acc</td>
-                            <td><strong>0.2721</strong></td>
-                            <td>0.0610</td>
-                        </tr>
-                        <tr>
-                            <td>Binary Acc</td>
-                            <td><strong>0.6029</strong></td>
-                            <td>0.0569</td>
-                        </tr>
-                        <tr>
-                            <td>Binary F1</td>
-                            <td><strong>0.5512</strong></td>
-                            <td>0.0289</td>
-                        </tr>
+                        <tr><th>Class</th><th>Precision</th><th>Recall</th><th>F1-Score</th><th>Support</th></tr>
+                        <tr><td><strong>REAL</strong></td><td>0.88</td><td>0.91</td><td class="best">0.89</td><td>163</td></tr>
+                        <tr><td><strong>FAKE</strong></td><td>0.87</td><td>0.83</td><td>0.85</td><td>117</td></tr>
+                        <tr class="highlight-row"><td><strong>Accuracy</strong></td><td colspan="3"></td><td><strong>87.5%</strong></td></tr>
+                        <tr class="highlight-row"><td><strong>Macro Avg</strong></td><td>0.87</td><td>0.87</td><td><strong>0.87</strong></td><td>280</td></tr>
+                    </table>
+                </div>
+                <div class="card">
+                    <h3>Classification Report — Content v2</h3>
+                    <table>
+                        <tr><th>Class</th><th>Precision</th><th>Recall</th><th>F1-Score</th><th>Support</th></tr>
+                        <tr><td><strong>REAL</strong></td><td>0.89</td><td>0.91</td><td class="best">0.90</td><td>163</td></tr>
+                        <tr><td><strong>FAKE</strong></td><td>0.88</td><td>0.86</td><td>0.87</td><td>117</td></tr>
+                        <tr class="highlight-row"><td><strong>Accuracy</strong></td><td colspan="3"></td><td><strong>88.9%</strong></td></tr>
                     </table>
                 </div>
             </div>
             <div>
                 <div class="card" style="height:100%;">
-                    <h3>🔑 Kết luận</h3>
+                    <h3>🔑 Phân tích lỗi</h3>
                     <ul style="list-style:none; padding:0;">
                         <li style="padding:12px 0; border-bottom:1px solid rgba(255,255,255,0.05);">
-                            <strong style="color:var(--green);">✅ Binary F1 ổn định nhất</strong><br>
-                            <span class="text-sm" style="color:var(--muted);">Std = 0.029 → Mô hình ổn định trong phân
-                                loại Real/Fake</span>
+                            <strong style="color:var(--green);">✅ REAL recall cao (91%)</strong><br>
+                            <span class="text-sm" style="color:var(--muted);">Model rất giỏi nhận diện tin thật — Chỉ 9% tin thật bị gán nhầm là giả</span>
                         </li>
                         <li style="padding:12px 0; border-bottom:1px solid rgba(255,255,255,0.05);">
-                            <strong style="color:var(--orange);">⚠️ 6-Class Acc biến động</strong><br>
-                            <span class="text-sm" style="color:var(--muted);">Std = 0.061 → Nhạy cảm với initialization
-                                ở bài toán 6-class</span>
+                            <strong style="color:var(--orange);">⚠️ FAKE recall 83%</strong><br>
+                            <span class="text-sm" style="color:var(--muted);">17% tin giả bị "lọt sổ" — Tin giả tinh vi gần giống tin thật</span>
+                        </li>
+                        <li style="padding:12px 0; border-bottom:1px solid rgba(255,255,255,0.05);">
+                            <strong style="color:var(--accent2);">💡 Content v2 > GNN v3</strong><br>
+                            <span class="text-sm" style="color:var(--muted);">Chứng minh: Nội dung (Text+Ảnh) là tín hiệu mạnh nhất. GNN cung cấp thêm context nhưng không vượt qua</span>
                         </li>
                         <li style="padding:12px 0;">
-                            <strong style="color:var(--accent2);">💡 Best seed = 456</strong><br>
-                            <span class="text-sm" style="color:var(--muted);">F1=0.193, Binary Acc=0.639, Binary
-                                F1=0.591</span>
+                            <strong style="color:var(--accent);">🔬 Lý do GNN thấp hơn 1.4%</strong><br>
+                            <span class="text-sm" style="color:var(--muted);">Cascade graph nhỏ (ít comment) → GNN thiếu tín hiệu cấu trúc, sinh noise</span>
                         </li>
                     </ul>
                 </div>
@@ -959,121 +685,26 @@
         </div>
     </div>
 
-    <!-- ========================== SLIDE 9: SO SÁNH TỔNG HỢP ========================== -->
+    <!-- ========================== SLIDE 9: KỸ THUẬT ========================== -->
     <div class="slide" id="s9">
-        <h2>🏆 So Sánh Tổng Hợp</h2>
-        <p class="subtitle">Mô hình đề xuất vs Baselines vs Nghiên cứu liên quan</p>
-        <div class="grid grid-2" style="flex:1;">
-            <div>
-                <div class="card" style="height:100%;">
-                    <h3>Nội bộ (Internal Comparison)</h3>
-                    <table>
-                        <tr>
-                            <th>Mô hình</th>
-                            <th>6-Class F1</th>
-                            <th>Binary Acc</th>
-                        </tr>
-                        <tr>
-                            <td>Text-Only Baseline</td>
-                            <td>0.129</td>
-                            <td>0.525</td>
-                        </tr>
-                        <tr>
-                            <td>Image-Only Baseline</td>
-                            <td>0.102</td>
-                            <td>0.607</td>
-                        </tr>
-                        <tr>
-                            <td>Graph SAGE (best F1)</td>
-                            <td class="best">0.190</td>
-                            <td>0.618</td>
-                        </tr>
-                        <tr>
-                            <td>Graph GAT (best BinAcc)</td>
-                            <td>0.171</td>
-                            <td class="best">0.639</td>
-                        </tr>
-                        <tr class="highlight-row">
-                            <td><strong>Ours (mean±std)</strong></td>
-                            <td><strong>0.172±0.018</strong></td>
-                            <td><strong>0.603±0.057</strong></td>
-                        </tr>
-                        <tr class="highlight-row">
-                            <td><strong>Ours (best BinAcc)</strong></td>
-                            <td>0.140</td>
-                            <td class="best"><strong>0.664</strong></td>
-                        </tr>
-                    </table>
-                </div>
-            </div>
-            <div>
-                <div class="card mb-20">
-                    <h3>So sánh với nghiên cứu khác</h3>
-                    <table>
-                        <tr>
-                            <th>Nghiên cứu</th>
-                            <th>Dataset</th>
-                            <th>Classes</th>
-                            <th>F1</th>
-                        </tr>
-                        <tr>
-                            <td>BiGCN (AAAI 2020)</td>
-                            <td>Twitter15/16</td>
-                            <td>2</td>
-                            <td>0.88</td>
-                        </tr>
-                        <tr>
-                            <td>GCAN (ACL 2020)</td>
-                            <td>Twitter15/16</td>
-                            <td>2</td>
-                            <td>0.89</td>
-                        </tr>
-                        <tr>
-                            <td>SpotFake (IEEE 2019)</td>
-                            <td>MediaEval</td>
-                            <td>2</td>
-                            <td>0.77</td>
-                        </tr>
-                        <tr class="highlight-row">
-                            <td><strong>Ours</strong></td>
-                            <td><strong>Reddit</strong></td>
-                            <td><strong>6</strong></td>
-                            <td><strong>0.17</strong></td>
-                        </tr>
-                    </table>
-                    <p class="text-sm" style="margin-top:8px; color:var(--muted);">⚠️ So sánh không hoàn toàn công bằng:
-                        dataset, số lớp, và kích thước khác nhau đáng kể</p>
-                </div>
-                <div class="card">
-                    <h3>🎯 Kết luận chính</h3>
-                    <p class="text-sm">Full model đạt <strong style="color:var(--green);">Binary Accuracy cao nhất
-                            (66.4%)</strong> trong tất cả các biến thể, chứng tỏ kết hợp đa phương thức + GNN là hiệu
-                        quả cho bài toán phân loại nhị phân.</p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- ========================== SLIDE 10: KỸ THUẬT ĐẶC SẮC ========================== -->
-    <div class="slide" id="s10">
         <h2>⚙️ Các Kỹ Thuật Nổi Bật</h2>
         <div class="grid grid-2" style="flex:1;">
             <div class="card">
-                <h3>🧠 Deep Learning & NLP</h3>
+                <h3>🧠 Feature Extraction (v2)</h3>
                 <ul class="check-list">
-                    <li>XLM-RoBERTa — text embedding đa ngôn ngữ (768d)</li>
-                    <li>ResNet50 — image embedding (2048d → 512d)</li>
-                    <li>Multi-Head Cross-Attention (4 heads)</li>
-                    <li>Gated Residual + Sigmoid Gate</li>
-                    <li>Layer Normalization + Dropout</li>
+                    <li>CLIP ViT-B/32 — Text (512d) + Image (512d)</li>
+                    <li>XLM-RoBERTa — đa ngôn ngữ context (768d)</li>
+                    <li>Cosine Mismatch Score — Text↔Image (1d)</li>
+                    <li>Gated Expert Fusion — 3 chuyên gia + Attention Gate</li>
+                    <li>🆕 Feature Injection vào cascade graphs (1793d/node)</li>
                 </ul>
             </div>
             <div class="card">
-                <h3>🔗 Graph Neural Networks</h3>
+                <h3>🔗 Graph Neural Networks (v3)</h3>
                 <ul class="check-list">
-                    <li>GraphSAGE — neighbor aggregation</li>
+                    <li>Cross-Attention Fusion (4 heads, gated residual)</li>
                     <li>GAT — attention-weighted message passing</li>
-                    <li>GCN — spectral convolution</li>
+                    <li>GraphSAGE — neighbor aggregation</li>
                     <li>Global Mean Pooling (graph → vector)</li>
                     <li>Residual connections giữa GNN layers</li>
                 </ul>
@@ -1083,9 +714,9 @@
                 <ul class="check-list">
                     <li>Balanced Class Weights (Cost-sensitive)</li>
                     <li>Early Stopping (patience=15)</li>
-                    <li>Multi-seed evaluation (5 seeds)</li>
-                    <li>Ablation Study (6 biến thể)</li>
+                    <li>Weight Decay regularization</li>
                     <li>Gradient Clipping (max_norm=1.0)</li>
+                    <li>Dropout 0.3 toàn pipeline</li>
                 </ul>
             </div>
             <div class="card">
@@ -1093,58 +724,40 @@
                 <ul class="check-list">
                     <li>Reddit API + DFS comment tree</li>
                     <li>Label Studio — human annotation</li>
-                    <li>Batch Pipeline Automation (.bat)</li>
+                    <li>🆕 Auto image recovery (media_url extraction)</li>
                     <li>DVC — data version control</li>
-                    <li>Schema validation rules</li>
+                    <li>Flask Dashboard — full pipeline automation</li>
                 </ul>
             </div>
         </div>
     </div>
 
-    <!-- ========================== SLIDE 11: DEMO & SẢN PHẨM ========================== -->
-    <div class="slide" id="s11">
+    <!-- ========================== SLIDE 10: DEMO ========================== -->
+    <div class="slide" id="s10">
         <h2>🚀 Sản Phẩm & Demo</h2>
         <p class="subtitle">Hệ thống hoàn chỉnh từ thu thập dữ liệu đến training và trực quan hóa</p>
         <div class="grid grid-2" style="flex:1;">
             <div class="card">
                 <h3>🌐 Web Dashboard (Flask)</h3>
-                <p class="text-sm" style="margin-bottom:12px;">Dashboard tích hợp 11 chức năng pipeline</p>
+                <p class="text-sm" style="margin-bottom:12px;">Dashboard tích hợp toàn bộ pipeline</p>
                 <table>
-                    <tr>
-                        <td>🕷️ Crawl Reddit</td>
-                        <td>🔗 Build Graphs</td>
-                    </tr>
-                    <tr>
-                        <td>💬 Enrich Data</td>
-                        <td>👁️ Visualize Graphs</td>
-                    </tr>
-                    <tr>
-                        <td>🔄 Reddit Pipeline</td>
-                        <td>📦 Fakeddit Batch</td>
-                    </tr>
-                    <tr>
-                        <td>🏷️ Label Studio Convert</td>
-                        <td>🤖 Auto-Label</td>
-                    </tr>
-                    <tr>
-                        <td>🏋️ Training (5 types)</td>
-                        <td>📊 Results Compare</td>
-                    </tr>
-                    <tr>
-                        <td colspan="2">📜 Run History (SQLite DB)</td>
-                    </tr>
+                    <tr><td>🕷️ Crawl Reddit</td><td>🔗 Build Graphs</td></tr>
+                    <tr><td>💬 Enrich Data</td><td>👁️ Visualize Graphs</td></tr>
+                    <tr><td>🔄 Reddit Pipeline</td><td>📦 Fakeddit Batch</td></tr>
+                    <tr><td>🏷️ Label Studio Convert</td><td>🤖 Auto-Label (LLM)</td></tr>
+                    <tr><td>🏋️ Training (5 types)</td><td>📊 Results Compare</td></tr>
+                    <tr><td colspan="2">📜 Run History (SQLite DB)</td></tr>
                 </table>
             </div>
             <div class="card">
                 <h3>📄 Tài Liệu & Outputs</h3>
                 <ul class="check-list">
-                    <li>Báo cáo NCKH (paper_report.md — 485 dòng)</li>
-                    <li>Bảng LaTeX cho paper (results_table.tex)</li>
-                    <li>Biểu đồ so sánh model (model_comparison.png)</li>
-                    <li>Biểu đồ ablation (ablation_study.png)</li>
-                    <li>Boxplot multi-seed (multi_seed_boxplot.png)</li>
-                    <li>Tech Reference Website (55KB HTML)</li>
-                    <li>Interactive Graph Visualizer (vis.js)</li>
+                    <li>Báo cáo NCKH & Slide thuyết trình</li>
+                    <li>🆕 Biểu đồ so sánh Phase 3 vs Phase 4</li>
+                    <li>🆕 Confusion Matrix cho GNN v3</li>
+                    <li>🆕 Feature Contribution Analysis</li>
+                    <li>Interactive Cascade Graph Visualizer</li>
+                    <li>Progress Presentation (file này!)</li>
                 </ul>
             </div>
         </div>
@@ -1157,28 +770,25 @@
         </div>
     </div>
 
-    <!-- ========================== SLIDE 12: KẾ HOẠCH ========================== -->
-    <div class="slide" id="s12">
-        <h2>🗓️ Kế Hoạch Tiếp Theo & Hạn Chế</h2>
+    <!-- ========================== SLIDE 11: HẠN CHẾ & HƯỚNG ĐI ========================== -->
+    <div class="slide" id="s11">
+        <h2>🗓️ Hạn Chế & Hướng Phát Triển</h2>
         <div class="grid grid-2" style="flex:1;">
             <div>
                 <div class="card mb-20">
                     <h3 style="color:var(--accent3);">⚠️ Hạn chế hiện tại</h3>
                     <ul style="list-style:none; padding:0;">
                         <li style="padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.05);">
-                            <strong>6-Class F1 còn thấp (~0.17)</strong><br>
-                            <span class="text-sm" style="color:var(--muted);">→ Class imbalance nghiêm trọng (TRUE: 44%
-                                vs BARELY_TRUE: 3%)</span>
+                            <strong>Dataset nhỏ (2,384 samples)</strong><br>
+                            <span class="text-sm" style="color:var(--muted);">→ Có dấu hiệu overfitting; cần mở rộng để xác nhận tính tổng quát</span>
                         </li>
                         <li style="padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.05);">
-                            <strong>Image coverage thấp (16.9%)</strong><br>
-                            <span class="text-sm" style="color:var(--muted);">→ Chỉ 402/2,384 bài có ảnh, hạn chế khả
-                                năng học visual features</span>
+                            <strong>Cascade graph ngắn</strong><br>
+                            <span class="text-sm" style="color:var(--muted);">→ Nhiều bài chỉ có 1-2 comment, GNN thiếu "thức ăn" để học pattern</span>
                         </li>
                         <li style="padding:8px 0;">
-                            <strong>Dataset nhỏ (2,384 samples)</strong><br>
-                            <span class="text-sm" style="color:var(--muted);">→ Chưa đủ đại diện; cần mở rộng để có kết
-                                quả chính thức</span>
+                            <strong>GNN v3 < Content v2 (1.4%)</strong><br>
+                            <span class="text-sm" style="color:var(--muted);">→ Graph structure chưa bổ sung đủ tín hiệu; cần thiết kế GNN tốt hơn</span>
                         </li>
                     </ul>
                 </div>
@@ -1187,47 +797,45 @@
                 <div class="card mb-20">
                     <h3 style="color:var(--accent2);">🔮 Hướng phát triển</h3>
                     <ul class="check-list">
-                        <li class="wip">Mở rộng dữ liệu: thu thập thêm bài có ảnh</li>
-                        <li class="todo">Thử Focal Loss / Oversampling cho class imbalance</li>
-                        <li class="todo">Fine-tune XLM-R (unfreeze last layers)</li>
-                        <li class="todo">Temporal modeling (thời gian lan truyền)</li>
-                        <li class="todo">Heterogeneous GNN (phân biệt post vs comment)</li>
-                        <li class="todo">CLIP thay thế ResNet50 cho cross-modal alignment</li>
+                        <li>Mở rộng dataset: crawl thêm bài có cascade dài</li>
+                        <li>Heterogeneous GNN (phân biệt post vs comment)</li>
+                        <li>Temporal modeling (thời gian lan truyền)</li>
+                        <li>Fine-tune CLIP encoder cho domain Reddit</li>
+                        <li>Data augmentation cho lớp thiểu số (FAKE)</li>
                     </ul>
                 </div>
                 <div class="card">
-                    <h3>📝 Deadline</h3>
-                    <ul class="check-list">
-                        <li class="wip">Hoàn thiện bản thảo báo cáo NCKH</li>
-                        <li class="wip">Chuẩn bị slide thuyết trình chính thức</li>
-                        <li class="todo">Review & refine bởi mentor</li>
-                    </ul>
+                    <h3>📝 Kết luận chính</h3>
+                    <p class="text-sm">
+                        ✅ <strong>CLIP multimodal features</strong> là đóng góp quan trọng nhất — giúp accuracy tăng từ 63% lên 89%.<br><br>
+                        ✅ <strong>Content > Graph</strong> trong điều kiện cascade nhỏ — nhưng GNN vẫn đạt 87.5%, sẵn sàng cho dataset lớn hơn.<br><br>
+                        ✅ Hệ thống pipeline <strong>end-to-end</strong> đã hoàn chỉnh: Crawl → Label → Extract → Train → Evaluate → Visualize.
+                    </p>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- ========================== SLIDE 13: THANK YOU ========================== -->
-    <div class="slide" id="s13">
-        <div
-            style="flex:1; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center;">
+    <!-- ========================== SLIDE 12: THANK YOU ========================== -->
+    <div class="slide" id="s12">
+        <div style="flex:1; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center;">
             <div style="font-size:5rem; margin-bottom:24px;">🙏</div>
             <h1><span class="grad">Cảm ơn đã lắng nghe!</span></h1>
             <p class="subtitle" style="max-width:600px;">
-                Multimodal Fake News Detection using Graph Neural Networks
+                Multimodal Fake News Detection using CLIP, XLM-RoBERTa & Graph Neural Networks
             </p>
-            <div style="display:flex; gap:20px; margin-top:30px;">
+            <div style="display:flex; gap:20px; margin-top:30px; flex-wrap:wrap; justify-content:center;">
                 <div class="card" style="padding:16px 28px;">
                     <div style="font-size:1.5rem; margin-bottom:6px;">📊</div>
                     <div style="font-size:0.85rem; color:var(--muted);">2,384 graphs</div>
                 </div>
                 <div class="card" style="padding:16px 28px;">
                     <div style="font-size:1.5rem; margin-bottom:6px;">🧠</div>
-                    <div style="font-size:0.85rem; color:var(--muted);">12+ models</div>
+                    <div style="font-size:0.85rem; color:var(--muted);">CLIP + XLM-R + GAT</div>
                 </div>
                 <div class="card" style="padding:16px 28px;">
                     <div style="font-size:1.5rem; margin-bottom:6px;">🎯</div>
-                    <div style="font-size:0.85rem; color:var(--muted);">66.4% Binary Acc</div>
+                    <div style="font-size:0.85rem; color:var(--green); font-weight:700;">88.9% Accuracy</div>
                 </div>
                 <div class="card" style="padding:16px 28px;">
                     <div style="font-size:1.5rem; margin-bottom:6px;">🚀</div>
@@ -1243,7 +851,7 @@
     <!-- ========================== NAVIGATION ========================== -->
     <div class="nav">
         <button onclick="go(-1)">◀ Prev</button>
-        <div class="counter"><span id="current">1</span> / <span id="total">13</span></div>
+        <div class="counter"><span id="current">1</span> / <span id="total">12</span></div>
         <button onclick="go(1)">Next ▶</button>
     </div>
 

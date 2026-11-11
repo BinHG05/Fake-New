@@ -20,7 +20,10 @@ class TextOnlyModel(nn.Module):
         super().__init__()
 
         from transformers import AutoModel
-        self.backbone = AutoModel.from_pretrained(backbone)
+        try:
+            self.backbone = AutoModel.from_pretrained(backbone, local_files_only=True)
+        except Exception:
+            self.backbone = AutoModel.from_pretrained(backbone)
 
         # Freeze backbone — chỉ train lớp classifier
         for param in self.backbone.parameters():

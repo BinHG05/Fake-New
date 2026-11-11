@@ -13,6 +13,7 @@ Stages:
 from __future__ import annotations
 
 import argparse
+import os
 import shlex
 import subprocess
 import sys
@@ -26,7 +27,9 @@ PYTHON = sys.executable
 def run_command(command: list[str], description: str) -> None:
     print(f"\n=== {description} ===")
     print("Command:", " ".join(shlex.quote(part) for part in command))
-    subprocess.run(command, check=True, cwd=PROJECT_ROOT)
+    env = os.environ.copy()
+    env["PYTHONIOENCODING"] = "utf-8"
+    subprocess.run(command, check=True, cwd=PROJECT_ROOT, env=env)
 
 
 def cmd_crawl(args: argparse.Namespace) -> None:
@@ -229,11 +232,18 @@ def cmd_train_all(args: argparse.Namespace) -> None:
     batch_size = str(args.batch_size)
     
     models = [
-        ("Text Baseline", "src/training/train_baseline.py", ["--model", "text", "--epochs", epochs, "--batch_size", batch_size]),
-        ("Image Baseline", "src/training/train_baseline.py", ["--model", "image", "--epochs", epochs, "--batch_size", batch_size]),
-        ("Fusion Baseline", "src/training/train_baseline.py", ["--model", "fusion", "--epochs", epochs, "--batch_size", batch_size]),
-        ("Graph GNN", "src/training/train_gnn.py", ["--epochs", epochs, "--batch_size", batch_size]),
-        ("Multimodal GNN", "src/training/train_multimodal_gnn.py", ["--epochs", epochs, "--batch_size", batch_size]),
+        ("Text Baseline", "src/training/train_baseline.py", ["--model_type", "text", "--data_path", "data/all_merged_binary.jsonl", "--epochs", epochs, "--batch_size", batch_size]),
+        ("Image Baseline", "src/training/train_baseline.py", ["--model_type", "image", "--data_path", "data/all_merged_binary.jsonl", "--epochs", epochs, "--batch_size", batch_size]),
+        ("Fusion Baseline", "src/training/train_baseline.py", ["--model_type", "fusion", "--data_path", "data/all_merged_binary.jsonl", "--epochs", epochs, "--batch_size", batch_size]),
+        ("Graph GNN", "src/training/train_gnn.py", ["--metadata", "data/all_merged_binary.jsonl", "--epochs", epochs, "--batch_size", batch_size]),
+        # V3 Multimodal GNN — must point to processed_graphs_v3 (CLIP features, 1793-dim)
+        ("Multimodal GNN V3", "src/training/train_multimodal_gnn.py", [
+            "--metadata", "data/all_merged_binary.jsonl",
+            "--graph_dir", "data/processed_graphs_v3",
+            "--epochs", epochs,
+            "--batch_size", batch_size,
+            "--patience", "20",
+        ]),
     ]
 
     for name, script, script_args in models:
@@ -290,24 +300,31 @@ def cmd_build_graphs(args: argparse.Namespace) -> None:
     )
 
     if args.multimodal:
-        command = [
+        clip_features_path = "data/04_features/Fakeddit/clip_features_v3.pt"
+        
+        # 1. Extract CLIP features
+        command_extract = [
             PYTHON,
-            "src/utils/rebuild_graphs_with_images.py",
-            "--metadata",
-            args.input,
-            "--graph_dir",
-            args.output,
-            "--output_dir",
-            args.multimodal_output,
-            "--batch_size",
-            str(args.image_batch_size),
+            "src/features/clip_text_extractor_v2.py",
+            "--input", "data/reddit_enriched_binary.jsonl",
+            "--output", clip_features_path
         ]
-        run_command(command, "Step 5B: Build multimodal graphs")
+        run_command(command_extract, "Step 5B: Extract CLIP & XLM-R Multimodal Features (V3)")
+        
+        # 2. Inject features into graphs
+        command_inject = [
+            PYTHON,
+            "scripts/inject_v2_features_to_graphs.py",
+            "--features", clip_features_path,
+            "--graph_dir", args.output,
+            "--output_dir", "data/processed_graphs_v3"
+        ]
+        run_command(command_inject, "Step 5C: Inject features to build V3 Graphs")
 
 
 def cmd_train(args: argparse.Namespace) -> None:
     graph_dir = args.graph_dir
-    if args.model == "gnn" and graph_dir == "data/processed_graphs_multimodal":
+    if args.model == "gnn" and graph_dir == "data/processed_graphs_v3":
         graph_dir = "data/processed_graphs"
 
     if args.model == "baseline_text":
@@ -439,8 +456,8 @@ def build_parser() -> argparse.ArgumentParser:
     train.add_argument("--epochs", type=int, default=30)
     train.add_argument("--batch_size", type=int, default=32)
     train.add_argument("--save_dir", default="models/checkpoints/team_runs")
-    train.add_argument("--metadata", default="data/reddit_enriched_binary.jsonl")
-    train.add_argument("--graph_dir", default="data/processed_graphs_multimodal")
+    train.add_argument("--metadata", default="data/all_merged_binary.jsonl")
+    train.add_argument("--graph_dir", default="data/processed_graphs_v3")
     train.set_defaults(func=cmd_train)
 
     # ── Auto-label (Step 2.5) ──────────────────────────────────

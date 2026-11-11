@@ -1,0 +1,51 @@
+Fake News Detection Report - Content Domain
+
+Pipeline                         Accuracy   F1-Score
+v1 Baseline                        0.6536     0.6493
+v2b CLIP-Only                      0.8893     0.8841
+v2 Full CLIP+XLM-R                 0.8536     0.8510
+v2 Improved (Expert Fusion)        0.8571     0.8532
+
+--- v1 Baseline ---
+              precision    recall  f1-score   support
+
+        REAL     0.7230    0.6564    0.6881       163
+        FAKE     0.5758    0.6496    0.6104       117
+
+    accuracy                         0.6536       280
+   macro avg     0.6494    0.6530    0.6493       280
+weighted avg     0.6615    0.6536    0.6557       280
+
+
+--- v2b CLIP-Only ---
+              precision    recall  f1-score   support
+
+        REAL     0.8750    0.9448    0.9086       163
+        FAKE     0.9135    0.8120    0.8597       117
+
+    accuracy                         0.8893       280
+   macro avg     0.8942    0.8784    0.8841       280
+weighted avg     0.8911    0.8893    0.8882       280
+
+
+--- v2 Full CLIP+XLM-R ---
+              precision    recall  f1-score   support
+
+        REAL     0.8961    0.8466    0.8707       163
+        FAKE     0.8016    0.8632    0.8313       117
+
+    accuracy                         0.8536       280
+   macro avg     0.8488    0.8549    0.8510       280
+weighted avg     0.8566    0.8536    0.8542       280
+
+
+--- v2 Improved (Expert Fusion) ---
+              precision    recall  f1-score   support
+
+        REAL     0.8773    0.8773    0.8773       163
+        FAKE     0.8291    0.8291    0.8291       117
+
+    accuracy                         0.8571       280
+   macro avg     0.8532    0.8532    0.8532       280
+weighted avg     0.8571    0.8571    0.8571       280
+
