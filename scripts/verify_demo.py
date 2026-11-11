@@ -1,122 +1,99 @@
 """
-Verification script for Fake News Demo Pipeline.
-Tests the FakeNewsPredictor class with various scenarios.
+Demo Verification Script for FakeNews Detection Pipeline.
+Validates the demo app API endpoints:
+- Checkpoint loading
+- Real probability output
+- Missing image warnings
+- Official canonical metrics & confusion matrix
+- Batch inference
 """
 
-import os
-import sys
+from __future__ import annotations
+
 import json
 import logging
+import sys
 from pathlib import Path
 
-# Add project root to sys.path
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 if str(PROJECT_ROOT) not in sys.path:
-    sys.path.append(str(PROJECT_ROOT))
+    sys.path.insert(0, str(PROJECT_ROOT))
 
-# Disable verbose logging from transformers
-logging.getLogger("transformers").setLevel(logging.ERROR)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] - %(message)s")
+logger = logging.getLogger("VerifyDemo")
 
-from src.deployment.predictor import FakeNewsPredictor, PredictorError
 
-def test_health():
-    print("\n=== [1] Testing Predictor Health ===")
-    try:
-        predictor = FakeNewsPredictor()
-        health = predictor.health()
-        print(f"Predictor Status: {'READY' if health['ready'] else 'NOT READY'}")
-        print(f"Model Type: {health['model_type']}")
-        print(f"Checkpoint: {health['checkpoint']}")
-        print(f"Device: {health['device']}")
-        print(f"Classes: {health.get('classes', 'N/A')}")
-        return predictor
-    except Exception as e:
-        print(f"[!] Health check failed: {e}")
-        import traceback
-        traceback.print_exc()
-        return None
+def verify_demo() -> bool:
+    logger.info("=" * 60)
+    logger.info("STARTING DEMO APP VERIFICATION")
+    logger.info("=" * 60)
 
-def test_url_inference(predictor):
-    print("\n=== [2] Testing Single URL Inference ===")
-    # A known stable Reddit post
-    test_url = "https://www.reddit.com/r/technology/comments/1bgsv8r/the_legal_battle_over_openai_and_copyright/"
-    
-    try:
-        print(f"Predicting URL: {test_url}")
-        result = predictor.predict_url(test_url)
-        
-        print(f"[+] Success!")
-        print(f"   Prediction: {result['prediction']}")
-        print(f"   Confidence: {result['confidence']}")
-        print(f"   Probabilities: {result['probabilities']}")
-        print(f"   Title: {result['post_info']['title'][:50]}...")
-        print(f"   Nodes: {result['graph_info']['num_nodes']}, Edges: {result['graph_info']['num_edges']}")
-        if result.get('warnings'):
-            print(f"   Warnings: {result['warnings']}")
-            
-    except PredictorError as e:
-        print(f"[!] Predictor Error: {e}")
-    except Exception as e:
-        print(f"[!] Unexpected Error: {e}")
-        import traceback
-        traceback.print_exc()
+    from demo.app import app
 
-def test_batch_inference(predictor):
-    print("\n=== [3] Testing Batch Inference ===")
-    dummy_file = PROJECT_ROOT / "data" / "test_demo_batch.jsonl"
-    
-    dummy_data = [
-        {
-            "id": "test_1",
-            "title": "Genuine news about technology",
-            "raw_text": "Genuine news about technology breakthrough in AI.",
-            "label": "REAL",
-            "timestamp": 1700000000,
-            "cascade": []
-        },
-        {
-            "id": "test_2",
-            "title": "Breaking: Aliens landed in Central Park",
-            "raw_text": "Aliens have landed in Central Park and are eating hotdogs.",
-            "label": "FAKE",
-            "timestamp": 1700000001,
-            "cascade": []
-        }
-    ]
-    
-    try:
-        with open(dummy_file, "w", encoding="utf-8") as f:
-            for item in dummy_data:
-                f.write(json.dumps(item) + "\n")
-        
-        print(f"Predicting batch from: {dummy_file}")
-        result = predictor.predict_batch(dummy_file)
-        
-        summary = result['summary']
-        print(f"[+] Success!")
-        print(f"   Total: {result['total']}")
-        print(f"   Summary: REAL={summary['real_count']}, FAKE={summary['fake_count']}")
-        print(f"   Accuracy: {summary['accuracy']}")
-        print(f"   Avg Confidence: {summary['avg_confidence']}")
-        
-    except Exception as e:
-        print(f"[!] Batch test failed: {e}")
-    finally:
-        if dummy_file.exists():
-            dummy_file.unlink()
+    client = app.test_client()
 
-def main():
-    print("Starting Demo Pipeline Verification...")
-    
-    predictor = test_health()
-    if not predictor:
-        print("Terminating verification due to initialization failure.")
-        return
-        
-    test_url_inference(predictor)
-    test_batch_inference(predictor)
-    
-    print("\n=== Verification Finished ===")
+    # 1. Test Health endpoint
+    logger.info("Testing GET /api/health ...")
+    r_health = client.get("/api/health")
+    assert r_health.status_code == 200, f"Health status {r_health.status_code}"
+    health_data = r_health.get_json()
+    assert health_data["status"] == "HEALTHY", f"Unhealthy status: {health_data}"
+    assert "multimodal_cascade_gnn_binary" in health_data["checkpoint"], f"Unexpected checkpoint: {health_data['checkpoint']}"
+    logger.info("  [+] Health Check Passed: %s", health_data["checkpoint"])
+
+    # 2. Test Official Metrics endpoint
+    logger.info("Testing GET /api/metrics ...")
+    r_metrics = client.get("/api/metrics")
+    assert r_metrics.status_code == 200, f"Metrics status {r_metrics.status_code}"
+    metrics_data = r_metrics.get_json()
+    assert "accuracy" in metrics_data, "Missing accuracy in metrics"
+    assert "f1" in metrics_data, "Missing F1 in metrics"
+    assert "confusion_matrix" in metrics_data, "Missing confusion matrix"
+    logger.info("  [+] Metrics Check Passed: Accuracy=%.4f, F1=%.4f", metrics_data["accuracy"], metrics_data["f1"])
+
+    # 3. Test Single Prediction with Missing Image Warning
+    logger.info("Testing POST /api/predict/record (Text-only payload) ...")
+    r_rec = client.post(
+        "/api/predict/record",
+        json={"clean_text": "Alien spaceships spotted hovering over Tokyo, official news confirms."},
+    )
+    assert r_rec.status_code == 200, f"Record predict status {r_rec.status_code}"
+    rec_data = r_rec.get_json()
+    assert "prediction" in rec_data, "Missing prediction"
+    assert "probability_fake" in rec_data, "Missing probability_fake"
+    assert "missing_image" in rec_data["warnings"], "Expected missing_image warning"
+    logger.info(
+        "  [+] Single Record Prediction Passed: Pred=%s, P(Fake)=%.4f, Warnings=%s",
+        rec_data["prediction"],
+        rec_data["probability_fake"],
+        rec_data["warnings"],
+    )
+
+    # 4. Test Batch Prediction
+    logger.info("Testing POST /api/predict/batch ...")
+    r_batch = client.post("/api/predict/batch")
+    assert r_batch.status_code == 200, f"Batch predict status {r_batch.status_code}"
+    batch_data = r_batch.get_json()
+    assert batch_data["total_records"] > 0, "No records returned in batch"
+    logger.info("  [+] Batch Prediction Passed: Total=%d, Counts=%s", batch_data["total_records"], batch_data["prediction_counts"])
+
+    # 5. Test Confusion Matrix Figure
+    logger.info("Testing GET /api/figures/confusion_matrix ...")
+    r_fig = client.get("/api/figures/confusion_matrix")
+    assert r_fig.status_code == 200, f"Figure status {r_fig.status_code}"
+    assert r_fig.mimetype == "image/png", f"Invalid mimetype {r_fig.mimetype}"
+    logger.info("  [+] Confusion Matrix PNG Served Successfully (%d bytes)", len(r_fig.data))
+
+    logger.info("=" * 60)
+    logger.info("DEMO APP VERIFICATION: ALL 5 CHECKS PASSED")
+    logger.info("=" * 60)
+    return True
+
 
 if __name__ == "__main__":
-    main()
+    try:
+        ok = verify_demo()
+        sys.exit(0 if ok else 1)
+    except Exception as exc:
+        logger.exception("DEMO VERIFICATION FAILED: %s", exc)
+        sys.exit(1)

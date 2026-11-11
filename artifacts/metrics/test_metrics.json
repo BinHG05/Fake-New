@@ -1,0 +1,25 @@
+{
+  "accuracy": 0.8796,
+  "f1": 0.7932,
+  "precision": 0.7833,
+  "recall": 0.8034,
+  "confusion_matrix": [
+    [
+      264,
+      26
+    ],
+    [
+      23,
+      94
+    ]
+  ],
+  "support": {
+    "real": 290,
+    "fake": 117,
+    "total": 407
+  },
+  "roc_auc": 0.949,
+  "split": "test",
+  "threshold": 0.5,
+  "checkpoint": "multimodal_cascade_gnn_binary.pt"
+}

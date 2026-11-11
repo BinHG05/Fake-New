@@ -1,0 +1,39 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fakenews-cascade-gnn"
+version = "1.0.0"
+description = "End-to-End Binary Fake News Detection Pipeline on Reddit using Multimodal Cascade GNN"
+authors = [
+    { name = "Research Team", email = "research@example.com" }
+]
+readme = "README.md"
+requires-python = ">=3.9"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "torch>=2.0.0",
+    "torch-geometric>=2.3.0",
+    "transformers>=4.30.0",
+    "scikit-learn>=1.2.0",
+    "numpy>=1.23.0",
+    "pillow>=9.0.0",
+    "pyyaml>=6.0",
+    "requests>=2.28.0",
+    "flask>=2.3.0",
+    "matplotlib>=3.7.0",
+    "tqdm>=4.65.0"
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]

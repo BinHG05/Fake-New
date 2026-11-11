@@ -46,8 +46,10 @@ def import_voz(force_label=None):
                 # Nếu người dùng muốn ép nhãn (ví dụ FAKE cho các thread tin đồn)
                 if force_label:
                     data['label'] = force_label
-                elif data.get('label') == "Unlabeled":
-                    data['label'] = "FAKE" # Tạm thời giả định tin từ forum/rumor là FAKE để cân bằng
+                else:
+                    # Do not automatically assign FAKE to forum posts.
+                    # Retain original label or mark as Unlabeled/OOD exploratory.
+                    data['label'] = data.get('label', 'Unlabeled')
                 
                 data['metadata']['lang'] = 'vi'
                 items.append(data)
