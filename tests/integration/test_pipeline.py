@@ -26,3 +26,4 @@ def test_predictor_integration():
     assert "probability_real" in result
     assert "missing_image" in result["warnings"]
     assert "missing_cascade_comments" in result["warnings"]
+

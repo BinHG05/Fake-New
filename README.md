@@ -118,8 +118,8 @@ Full experimental analysis is documented in [docs/evaluation.md](docs/evaluation
 
 ```powershell
 # 1. Clone repository
-git clone https://github.com/example/fake-news-cascade-gnn.git
-cd fake-news-cascade-gnn
+git clone https://github.com/BinHG05/Fake-New.git
+cd Fake-New
 
 # 2. Activate Conda environment
 conda env create -f environment.yml

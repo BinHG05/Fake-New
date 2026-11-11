@@ -31,3 +31,4 @@
    - Exceptionally large Reddit threads (thousands of comments) require graph pruning or depth truncation to prevent GPU out-of-memory errors during real-time batch processing.
 2. **Embedding Latency:**
    - Generating dual representations from XLM-RoBERTa and CLIP adds approximately 40–80ms per post on GPU, making high-throughput ingestion pipelines reliant on asynchronous embedding queues.
+

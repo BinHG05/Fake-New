@@ -36,3 +36,4 @@ def test_validate_fixtures_passes():
     assert report["status"] == "PASS"
     assert report["total_records"] > 0
     assert report["unique_ids"] == report["total_records"]
+

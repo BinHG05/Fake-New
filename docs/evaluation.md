@@ -53,3 +53,4 @@ The plot is automatically generated at `artifacts/figures/confusion_matrix.png`.
 1. **Cascade Topology Impact:** Incorporating comment cascade trees improves robust contextualization over unimodal text baselines by over **+13.76% accuracy**.
 2. **Multimodal Synergy:** Visual cues alone are insufficient ($28.75\%$), but when cross-attended with text in the cascade root, the model successfully detects visual-textual discrepancies characteristic of misinformation.
 3. **High Discriminative Power:** The ROC AUC of **0.9490** confirms strong ranking separation between legitimate news posts and fabricated content.
+

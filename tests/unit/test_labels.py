@@ -42,3 +42,4 @@ def test_derive_binary_label_invalid():
     rec_unlabeled = {"id": "7", "label": "Unlabeled"}
     with pytest.raises(ValueError):
         derive_binary_label(rec_unlabeled)
+

@@ -76,3 +76,4 @@ The inference engine (`src/fakenews/serving/predictor.py`) implements:
 - Strict rejection of unverified fallbacks.
 - Uncertainty estimation: classifications within a margin $\pm 0.15$ of the decision threshold are flagged as `UNCERTAIN`.
 - Diagnostic warnings for missing images or absent comment cascades.
+

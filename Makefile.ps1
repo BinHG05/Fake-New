@@ -57,3 +57,4 @@ switch ($Target.ToLower()) {
         Write-Host "  verify        Run demo API verification script"
     }
 }
+

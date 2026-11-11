@@ -106,3 +106,4 @@ The project provides `Makefile.ps1` to run all standard targets:
 .\Makefile.ps1 demo      # Launches demo app
 .\Makefile.ps1 verify    # Runs full verification suite
 ```
+
