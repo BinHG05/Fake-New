@@ -1,0 +1,43 @@
+name: Data Contract and Pipeline CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - name: Install CPU ML dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install torch --index-url https://download.pytorch.org/whl/cpu
+          pip install torch-geometric
+          pip install -e ".[dev,spark]"
+      - name: Compile canonical package
+        run: python -m compileall -q src/fakenews scripts tests
+      - name: Validate fixture contract and quarantine handling
+        run: python scripts/prepare_data.py --input tests/fixtures/sample_posts.jsonl --graphs tests/fixtures/empty_graphs --output_report /tmp/fixture_report.json --quarantine /tmp/quarantine.jsonl
+      - name: Run Bronze-to-Silver PySpark fixture ETL
+        run: |
+          python scripts/pyspark_etl.py \
+            --input tests/fixtures/sample_posts.jsonl \
+            --parquet-output /tmp/silver_parquet \
+            --jsonl-output /tmp/silver.jsonl \
+            --quarantine-output /tmp/silver_quarantine \
+            --manifest-output /tmp/silver_manifest.json \
+            --partitions 2 \
+            --master local[2]
+      - name: Run hermetic unit and integration tests
+        run: pytest tests/unit tests/integration -q
+      - name: Scan tracked files for common secret patterns
+        run: python scripts/check_secrets.py

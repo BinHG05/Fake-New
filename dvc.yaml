@@ -1,1 +1,59 @@
-stages: {}
+stages:
+  validate:
+    cmd: python scripts/prepare_data.py --config configs/canonical.yaml
+    deps:
+      - configs/canonical.yaml
+      - scripts/prepare_data.py
+      - src/fakenews/labeling/
+      - data/all_merged_binary.jsonl
+    outs:
+      - data/manifests/dataset_validation_report.json:
+          cache: false
+      - data/quarantine/rejected_records.jsonl:
+          cache: false
+
+  pyspark_etl:
+    cmd: python scripts/pyspark_etl.py --config configs/canonical.yaml --master local[2]
+    deps:
+      - configs/canonical.yaml
+      - scripts/pyspark_etl.py
+      - src/fakenews/preprocessing/pyspark_etl.py
+      - data/all_merged_binary.jsonl
+    outs:
+      - data/silver/canonical_posts
+      - data/silver/canonical_records.jsonl
+      - data/quarantine/spark_rejected_records
+      - data/manifests/pyspark_etl_manifest.json:
+          cache: false
+
+  build_graphs:
+    cmd: python scripts/build_graphs.py --config configs/canonical.yaml --input data/silver/canonical_records.jsonl
+    deps:
+      - configs/canonical.yaml
+      - scripts/build_graphs.py
+      - src/fakenews/graphs/
+      - data/silver/canonical_records.jsonl
+    outs:
+      - data/processed_graphs_v3
+
+  evaluate:
+    cmd: python scripts/evaluate.py --config configs/canonical.yaml --checkpoint artifacts/checkpoints/multimodal_cascade_gnn_binary.pt
+    deps:
+      - configs/canonical.yaml
+      - scripts/evaluate.py
+      - src/fakenews/evaluation/
+      - src/fakenews/models/
+      - data/all_merged_binary.jsonl
+      - data/processed_graphs_v3
+      - artifacts/checkpoints/multimodal_cascade_gnn_binary.pt
+    outs:
+      - artifacts/metrics/test_metrics.json:
+          cache: false
+      - artifacts/metrics/canonical_run_manifest.json:
+          cache: false
+      - artifacts/figures/confusion_matrix.png:
+          cache: false
+      - artifacts/figures/reliability_curve.png:
+          cache: false
+      - artifacts/predictions/test_predictions.jsonl:
+          cache: false

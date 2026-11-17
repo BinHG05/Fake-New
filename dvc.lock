@@ -1,0 +1,153 @@
+schema: '2.0'
+stages:
+  validate:
+    cmd: python scripts/prepare_data.py --config configs/canonical.yaml
+    deps:
+    - path: configs/canonical.yaml
+      hash: md5
+      md5: 83263549c8dafa2280e88fa1b1022091
+      size: 1144
+    - path: data/all_merged_binary.jsonl
+      hash: md5
+      md5: bd81e3142e1c99b98b4932ea032a249c
+      size: 104277139
+    - path: scripts/prepare_data.py
+      hash: md5
+      md5: af8c719cd2c80844b20470a1b890ecc6
+      size: 2904
+    - path: src/fakenews/labeling/
+      hash: md5
+      md5: 6f7288a869d8ad1d503f99e430e5b20c.dir
+      size: 39216
+      nfiles: 11
+    outs:
+    - path: data/manifests/dataset_validation_report.json
+      hash: md5
+      md5: 68544ee9415446df862ed4e91c963fe6
+      size: 770
+    - path: data/quarantine/rejected_records.jsonl
+      hash: md5
+      md5: d41d8cd98f00b204e9800998ecf8427e
+      size: 0
+  pyspark_etl:
+    cmd: python scripts/pyspark_etl.py --config configs/canonical.yaml --master 
+      local[2]
+    deps:
+    - path: configs/canonical.yaml
+      hash: md5
+      md5: 83263549c8dafa2280e88fa1b1022091
+      size: 1144
+    - path: data/all_merged_binary.jsonl
+      hash: md5
+      md5: bd81e3142e1c99b98b4932ea032a249c
+      size: 104277139
+    - path: scripts/pyspark_etl.py
+      hash: md5
+      md5: c76d1b2a42abdf403e964abb09689053
+      size: 1832
+    - path: src/fakenews/preprocessing/pyspark_etl.py
+      hash: md5
+      md5: 3e96c7de643fb34efd780ec447640723
+      size: 8407
+    outs:
+    - path: data/manifests/pyspark_etl_manifest.json
+      hash: md5
+      md5: 5dab68c38744022efb69d45490fba230
+      size: 729
+    - path: data/quarantine/spark_rejected_records
+      hash: md5
+      md5: b27564d2bccb167410d854bcca6919ca.dir
+      size: 16
+      nfiles: 4
+    - path: data/silver/canonical_posts
+      hash: md5
+      md5: 087a5159d52c23d6c819b23be4a52818.dir
+      size: 83472049
+      nfiles: 4284
+    - path: data/silver/canonical_records.jsonl
+      hash: md5
+      md5: 21450c953570f1bc4ddbe8f952721922
+      size: 108242508
+  build_graphs:
+    cmd: python scripts/build_graphs.py --config configs/canonical.yaml --input 
+      data/silver/canonical_records.jsonl
+    deps:
+    - path: configs/canonical.yaml
+      hash: md5
+      md5: 83263549c8dafa2280e88fa1b1022091
+      size: 1144
+    - path: data/silver/canonical_records.jsonl
+      hash: md5
+      md5: 21450c953570f1bc4ddbe8f952721922
+      size: 108242508
+    - path: scripts/build_graphs.py
+      hash: md5
+      md5: 02382268befc3569ff6ed91936eeaa11
+      size: 2618
+    - path: src/fakenews/graphs/
+      hash: md5
+      md5: 36fd8b1c40f8578f4d32e32ee52036a0.dir
+      size: 8943
+      nfiles: 6
+    outs:
+    - path: data/processed_graphs_v3
+      hash: md5
+      md5: f1760236abfd2705684ee08d42b45090.dir
+      size: 2275494720
+      nfiles: 9584
+  evaluate:
+    cmd: python scripts/evaluate.py --config configs/canonical.yaml --checkpoint
+      artifacts/checkpoints/multimodal_cascade_gnn_binary.pt
+    deps:
+    - path: artifacts/checkpoints/multimodal_cascade_gnn_binary.pt
+      hash: md5
+      md5: 6f7ccbdc220bf598b6bd8b19675c5ac4
+      size: 17913865
+    - path: configs/canonical.yaml
+      hash: md5
+      md5: 83263549c8dafa2280e88fa1b1022091
+      size: 1144
+    - path: data/all_merged_binary.jsonl
+      hash: md5
+      md5: bd81e3142e1c99b98b4932ea032a249c
+      size: 104277139
+    - path: data/processed_graphs_v3
+      hash: md5
+      md5: f1760236abfd2705684ee08d42b45090.dir
+      size: 2275494720
+      nfiles: 9584
+    - path: scripts/evaluate.py
+      hash: md5
+      md5: a8b5401f4d11ba0d9561beb8c9a93de5
+      size: 9807
+    - path: src/fakenews/evaluation/
+      hash: md5
+      md5: f7df059f11f2b2eec8b6c1d15132deb5.dir
+      size: 9100
+      nfiles: 4
+    - path: src/fakenews/models/
+      hash: md5
+      md5: 44c31ff7a6a1b4fa503aa87ba760d173.dir
+      size: 23073
+      nfiles: 6
+    outs:
+    - path: artifacts/figures/confusion_matrix.png
+      hash: md5
+      md5: 2b50aafa5b3432543b09f9cacd6d8c74
+      size: 37915
+    - path: artifacts/figures/reliability_curve.png
+      hash: md5
+      md5: 89f7c220f0e1d799c18ec651adc7d876
+      size: 78441
+    - path: artifacts/metrics/canonical_run_manifest.json
+      hash: md5
+      md5: 593622f105ce0f887f2d3948144ebbb5
+      size: 1067
+    - path: artifacts/metrics/test_metrics.json
+      hash: md5
+      md5: 1a82b77f4d4d086095d83ad77e28572f
+      size: 564
+    - path: artifacts/predictions/test_predictions.jsonl
+      hash: md5
+      md5: 4326aca8c9e5c0fe01782fd50e88a54a
+      size: 46789
