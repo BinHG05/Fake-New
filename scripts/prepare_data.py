@@ -28,6 +28,7 @@ def main() -> None:
     parser.add_argument("--input", type=str, default=None)
     parser.add_argument("--graphs", type=str, default=None)
     parser.add_argument("--output_report", type=str, default="data/manifests/dataset_validation_report.json")
+    parser.add_argument("--quarantine", type=str, default="data/quarantine/rejected_records.jsonl")
     args = parser.parse_args()
 
     cfg = load_config(args.config)
@@ -44,7 +45,15 @@ def main() -> None:
     logger.info("Validating dataset: %s", input_file)
     logger.info("Checking graphs in: %s", graph_dir)
 
-    report = validate_dataset(input_file, graph_dir=graph_dir, raise_on_error=False)
+    quarantine = Path(args.quarantine)
+    if not quarantine.is_absolute():
+        quarantine = (PROJECT_ROOT / quarantine).resolve()
+    report = validate_dataset(
+        input_file,
+        graph_dir=graph_dir,
+        raise_on_error=False,
+        quarantine_path=quarantine,
+    )
 
     out_rep = Path(args.output_report)
     if not out_rep.is_absolute():
@@ -60,6 +69,9 @@ def main() -> None:
     logger.info("Splits: %s", report["split_distribution"])
     logger.info("Sources: %s", report["source_distribution"])
     logger.info("Report written to %s", out_rep)
+    logger.info("Quarantine written to %s (%d records)", quarantine, report["quarantined_records"])
+    if report["status"] != "PASS":
+        raise SystemExit(1)
 
 
 if __name__ == "__main__":

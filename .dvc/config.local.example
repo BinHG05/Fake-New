@@ -1,0 +1,4 @@
+['remote "storage"']
+    auth = basic
+    user = <dvc-remote-user>
+    password = <dvc-remote-token>

@@ -1,0 +1,28 @@
+{
+  "status": "PASS",
+  "total_records": 10,
+  "valid_records": 10,
+  "quarantined_records": 0,
+  "unique_ids": 10,
+  "label_distribution": {
+    "REAL": 5,
+    "FAKE": 5
+  },
+  "split_distribution": {
+    "train": 10
+  },
+  "source_distribution": {
+    "fakeddit": 10
+  },
+  "missing_media_count": 0,
+  "split_leakage": {
+    "train_val_overlap": 0,
+    "train_test_overlap": 0,
+    "val_test_overlap": 0
+  },
+  "graph_check": {
+    "checked": false
+  },
+  "error_count": 0,
+  "errors": []
+}

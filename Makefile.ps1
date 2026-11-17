@@ -35,6 +35,14 @@ switch ($Target.ToLower()) {
         Write-Host "Validating Canonical Dataset Contract..." -ForegroundColor Cyan
         & $PythonExe scripts/prepare_data.py --config configs/canonical.yaml
     }
+    "etl" {
+        Write-Host "Running PySpark Bronze-to-Silver ETL..." -ForegroundColor Cyan
+        & $PythonExe scripts/pyspark_etl.py --config configs/canonical.yaml --master local[*]
+    }
+    "repro" {
+        Write-Host "Reproducing DVC pipeline..." -ForegroundColor Cyan
+        & $PythonExe -m dvc repro
+    }
     "demo" {
         Write-Host "Starting Demo Web Application on http://127.0.0.1:5000 ..." -ForegroundColor Cyan
         & $PythonExe demo/app.py
@@ -53,6 +61,8 @@ switch ($Target.ToLower()) {
         Write-Host "  train         Run full canonical training"
         Write-Host "  train-dev     Run quick 1-epoch development training"
         Write-Host "  validate-data Validate canonical dataset schema and contract"
+        Write-Host "  etl           Run Bronze-to-Silver PySpark ETL"
+        Write-Host "  repro         Reproduce DVC stages"
         Write-Host "  demo          Launch demo web server"
         Write-Host "  verify        Run demo API verification script"
     }

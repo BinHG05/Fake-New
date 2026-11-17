@@ -1,16 +1,35 @@
-
 services:
+  fakenews-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: fakenews-api
+    ports:
+      - "5000:5000"
+    environment:
+      HOST: 0.0.0.0
+      PORT: 5000
+      DEBUG: "false"
+      HF_HOME: /opt/huggingface
+    volumes:
+      - ./artifacts:/app/artifacts:ro
+      - ./data:/app/data:ro
+      - hf_cache:/opt/huggingface
+    restart: unless-stopped
+
   label-studio:
+    profiles: ["annotation"]
     image: heartexlabs/label-studio:latest
     container_name: label-studio
     ports:
       - "8080:8080"
     volumes:
-      # Mount entire project directory
       - .:/label-studio/project
-      # Mount Label Studio data (database & persistence)
       - ./labels_storage:/label-studio/data
     environment:
-      - LABEL_STUDIO_LOCAL_FILES_SERVING_ENABLED=true
-      - LABEL_STUDIO_LOCAL_FILES_DOCUMENT_ROOT=/label-studio/project
+      LABEL_STUDIO_LOCAL_FILES_SERVING_ENABLED: "true"
+      LABEL_STUDIO_LOCAL_FILES_DOCUMENT_ROOT: /label-studio/project
     restart: unless-stopped
+
+volumes:
+  hf_cache:

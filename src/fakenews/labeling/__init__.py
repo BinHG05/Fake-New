@@ -20,3 +20,7 @@ __all__ = [
     "validate_dataset",
 ]
 
+from src.fakenews.labeling.contracts import CanonicalPostContract
+from src.fakenews.labeling.labels import BINARY_LABEL_MAP, derive_binary_label
+
+__all__ = ["BINARY_LABEL_MAP", "CanonicalPostContract", "derive_binary_label"]

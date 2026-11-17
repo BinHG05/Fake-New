@@ -219,7 +219,8 @@ def train_pipeline(
             break
 
     # Save training metrics history
-    with open(metrics_dir / "train_metrics.json", "w", encoding="utf-8") as f:
+    metric_file = "dev_train_metrics.json" if (limit is not None and limit > 0) else "train_metrics.json"
+    with open(metrics_dir / metric_file, "w", encoding="utf-8") as f:
         json.dump(
             {"epochs": epochs, "best_val_score": best_score, "history": train_history},
             f,

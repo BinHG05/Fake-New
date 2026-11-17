@@ -1,6 +1,6 @@
 # Multimodal Cascade GNN: Binary Fake News Detection on Reddit
 
-[![Python 3.9+](https://img.shields.io/badge/Python-3.9%2B-blue.svg)](https://www.python.org/)
+[![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](https://www.python.org/)
 [![PyTorch Geometric](https://img.shields.io/badge/PyTorch-Geometric-green.svg)](https://pyg.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Reproducibility: 100%](https://img.shields.io/badge/Reproducibility-Verified-brightgreen.svg)](docs/reproducibility.md)
@@ -80,19 +80,19 @@ Evaluated on the held-out test split ($N = 407$) using the official canonical ch
 
 | Metric | Score | Detail |
 | :--- | :---: | :--- |
-| **Headline Test Accuracy** | **87.96%** | Primary headline accuracy |
-| **Binary F1-Score** | **0.7932** | Harmonic mean for FAKE class detection |
-| **Binary Precision** | **0.7833** | 78.33% of predicted fake posts are truly fake |
-| **Binary Recall** | **0.8034** | 80.34% of all fake posts successfully detected |
-| **ROC AUC** | **0.9490** | High separability across confidence thresholds |
+| **Headline Test Accuracy** | **87.71%** | Primary headline accuracy |
+| **Binary F1-Score** | **0.7934** | Harmonic mean for FAKE class detection |
+| **Binary Precision** | **0.7680** | 76.80% of predicted fake posts are truly fake |
+| **Binary Recall** | **0.8205** | 82.05% of all fake posts successfully detected |
+| **ROC AUC** | **0.9448** | High separability across confidence thresholds |
 | **Validation Accuracy** | **89.66%** | Validation set performance ($N = 406$) |
 
 ### Confusion Matrix (Test Split)
 
 ```text
                Predicted REAL    Predicted FAKE
-Actual REAL          264               26
-Actual FAKE           23               94
+Actual REAL          261               29
+Actual FAKE           21               96
 ```
 
 ### Baseline Comparisons
@@ -104,7 +104,7 @@ Actual FAKE           23               94
 | Early Fusion Baseline | Concat Text + Image | 75.43% | 0.6429 |
 | Graph-Only Baseline | Cascade GAT (Text) | 74.20% | 0.6769 |
 | CLIP-Only Benchmark | CLIP Text + Vision + Sim (1025d) | 90.00%* | 0.8772* |
-| **Multimodal Cascade GNN (Canonical)** | **Text + Image + Cascade Graph** | **87.96%** | **0.7932** |
+| **Multimodal Cascade GNN (Canonical)** | **Text + Image + Cascade Graph** | **87.71%** | **0.7934** |
 
 *\*Note on CLIP-only baseline: CLIP-only achieves high accuracy on static features but ignores propagation dynamics and comment debunking signals. It is preserved strictly as a feature baseline.*
 
@@ -125,7 +125,16 @@ cd Fake-New
 conda env create -f environment.yml
 conda activate multimodal_gnn
 
-# 3. Setup environment variables
+# 3. PySpark requirement for ETL/DVC (use Java 17+)
+java -version
+
+# Windows only: Hadoop local filesystem also needs winutils.exe.
+# Put it at C:\\hadoop\\bin\\winutils.exe, then use PowerShell:
+$env:HADOOP_HOME = "C:\\hadoop"
+$env:Path = "$env:HADOOP_HOME\\bin;$env:Path"
+$env:SPARK_LOCAL_IP = "127.0.0.1"
+
+# 4. Setup environment variables
 Copy-Item .env.example .env
 ```
 
@@ -157,6 +166,30 @@ python scripts/train.py --config configs/canonical.yaml
 To run a rapid 1-epoch debug run:
 ```powershell
 python scripts/train.py --config configs/canonical.yaml --epochs 1 --limit 32
+```
+
+### 5.5. Run the Data Engineering pipeline
+
+The reproducible path is managed by DVC. It validates the contract, runs the
+Bronze-to-Silver PySpark ETL, rebuilds graphs, and evaluates the canonical
+checkpoint:
+
+```powershell
+python -m dvc dag
+python -m dvc repro
+```
+
+For a small offline ETL check using the committed fixture:
+
+```powershell
+python scripts/pyspark_etl.py `
+  --input tests/fixtures/sample_posts.jsonl `
+  --parquet-output artifacts/etl-smoke/parquet `
+  --jsonl-output artifacts/etl-smoke/silver.jsonl `
+  --quarantine-output artifacts/etl-smoke/quarantine `
+  --manifest-output artifacts/etl-smoke/manifest.json `
+  --partitions 2 `
+  --master local[2]
 ```
 
 ---
@@ -192,8 +225,10 @@ python scripts/verify_demo.py
 │
 ├── data/
 │   ├── all_merged_binary.jsonl   # Canonical 9,584 records dataset
+│   ├── silver/                   # PySpark Bronze-to-Silver outputs
 │   ├── processed_graphs_v3/      # Canonical 9,584 PyG cascade graphs
-│   └── manifests/                # Data contract validation reports
+│   ├── manifests/                # Data contract and ETL reports
+│   └── quarantine/               # Rejected records from validation/ETL
 │
 ├── artifacts/
 │   ├── checkpoints/              # Official model weights (.pt)
@@ -201,7 +236,7 @@ python scripts/verify_demo.py
 │   ├── figures/                  # Confusion matrix & reliability curves
 │   └── predictions/              # Test prediction JSONL
 │
-├── src/fakenews/                 # Production pipeline package
+├── src/fakenews/                 # Single supported production package
 │   ├── config/                   # Settings and YAML loaders
 │   ├── ingestion/                # Reddit & news crawlers
 │   ├── preprocessing/            # Text and image processors
@@ -237,6 +272,8 @@ python scripts/verify_demo.py
 │   ├── evaluation.md             # Benchmark tables and confusion matrix
 │   ├── limitations.md            # Boundary conditions and future work
 │   └── archive/                  # Legacy baseline documentation
+│
+├── archive/                      # Historical code/data, excluded from pipeline
 │
 ├── Makefile.ps1                  # PowerShell task runner
 └── environment.yml               # Conda environment definition

@@ -3,6 +3,8 @@ Unit tests for data contract validator.
 """
 
 import json
+import tempfile
+from pathlib import Path
 import pytest
 from src.fakenews.labeling.validator import canonicalize_record, validate_dataset, ValidationError
 
@@ -10,6 +12,7 @@ from src.fakenews.labeling.validator import canonicalize_record, validate_datase
 def test_canonicalize_record_valid():
     raw = {
         "id": "post_123",
+        "source": "reddit",
         "raw_text": "Scientists discover water on Mars.",
         "label_binary": "REAL",
         "split": "train",
@@ -36,4 +39,19 @@ def test_validate_fixtures_passes():
     assert report["status"] == "PASS"
     assert report["total_records"] > 0
     assert report["unique_ids"] == report["total_records"]
+
+
+def test_invalid_record_is_written_to_quarantine():
+    with tempfile.TemporaryDirectory(dir=Path.cwd()) as temp_dir:
+        temp_path = Path(temp_dir)
+        source = temp_path / "invalid.jsonl"
+        source.write_text('{"raw_text": "missing identifier", "label_binary": "REAL"}\n', encoding="utf-8")
+        quarantine = temp_path / "quarantine.jsonl"
+
+        report = validate_dataset(source, raise_on_error=False, quarantine_path=quarantine)
+
+        assert report["status"] == "FAIL"
+        assert report["quarantined_records"] == 1
+        line = json.loads(quarantine.read_text(encoding="utf-8"))
+        assert line["error_code"] == "MISSING_ID"
 

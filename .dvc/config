@@ -1,4 +1,7 @@
 [core]
     remote = storage
+    site_cache_dir = .dvc/site-cache
+[cache]
+    dir = cache
 ['remote "storage"']
     url = https://dagshub.com/BinHG05/Fake-New.dvc

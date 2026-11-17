@@ -30,6 +30,7 @@ from src.fakenews.evaluation.metrics import (
 )
 from src.fakenews.models.multimodal_gnn import MultimodalCascadeGNN
 from src.fakenews.training.dataset import load_cascade_graphs
+from src.fakenews.utils.helpers import compute_file_sha256
 
 logging.basicConfig(
     level=logging.INFO,
@@ -180,12 +181,29 @@ def main() -> None:
     metrics["split"] = args.split
     metrics["threshold"] = threshold
     metrics["checkpoint"] = str(ckpt_path.name)
+    metrics["dataset_sha256"] = compute_file_sha256(meta_path)
+    metrics["checkpoint_sha256"] = compute_file_sha256(ckpt_path)
 
     # 1. Save metrics JSON
     out_metric_file = metrics_dir / f"{args.split}_metrics.json"
     with open(out_metric_file, "w", encoding="utf-8") as f:
         json.dump(metrics, f, indent=2)
     logger.info("Metrics written to: %s", out_metric_file)
+
+    run_manifest = {
+        "canonical": args.split == "test",
+        "dataset": str(meta_path.relative_to(root)),
+        "dataset_sha256": metrics["dataset_sha256"],
+        "graph_dir": str(graph_dir.relative_to(root)),
+        "checkpoint": str(ckpt_path.relative_to(root)) if ckpt_path.is_relative_to(root) else str(ckpt_path),
+        "checkpoint_sha256": metrics["checkpoint_sha256"],
+        "metrics_file": str(out_metric_file.relative_to(root)),
+        "metrics": metrics,
+    }
+    manifest_path = metrics_dir / "canonical_run_manifest.json"
+    with open(manifest_path, "w", encoding="utf-8") as f:
+        json.dump(run_manifest, f, indent=2)
+    logger.info("Canonical run manifest written to: %s", manifest_path)
 
     # 2. Plot Confusion Matrix
     figures_dir = (root / e_cfg.get("figures_dir", "artifacts/figures")).resolve()

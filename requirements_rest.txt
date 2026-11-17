@@ -27,3 +27,5 @@ notebook
 dvc
 dagshub
 imagehash
+pydantic>=2.7
+pyspark>=3.5

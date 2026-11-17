@@ -1,3 +1,12 @@
 # Add patterns of files dvc should ignore, which could improve
 # the performance. Learn more at
 # https://dvc.org/doc/user-guide/dvcignore
+
+# Local test/runtime state; never part of the data lineage.
+.pytest_cache/
+.pytest-tmp/
+pytest-basetemp-*/
+tmp*/
+
+# Historical research code and datasets are preserved for reference only.
+archive/

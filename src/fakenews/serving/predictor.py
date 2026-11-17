@@ -34,6 +34,7 @@ class FakeNewsPredictor:
         device: str = "auto",
         threshold: float = 0.5,
         uncertain_threshold: float = 0.15,
+        graph_builder: CascadeGraphBuilder | None = None,
     ) -> None:
         self.root = get_project_root()
 
@@ -78,7 +79,9 @@ class FakeNewsPredictor:
         self.gnn_type = str(m_cfg.get("gnn", "gat"))
 
         self.model: Optional[MultimodalCascadeGNN] = None
-        self.graph_builder = CascadeGraphBuilder(device=str(self.device))
+        # Injection point keeps CI hermetic: integration tests can provide a
+        # deterministic graph builder without downloading Hugging Face models.
+        self.graph_builder = graph_builder or CascadeGraphBuilder(device=str(self.device))
         self._load_checkpoint()
 
     def _load_checkpoint(self) -> None:
